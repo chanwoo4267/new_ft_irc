@@ -22,6 +22,9 @@
 #include "../includes/ClientManager.hpp"
 class ClientManager;
 
+#include "../includes/ChannelManager.hpp"
+class ChannelManager;
+
 class Server
 {
     private:
@@ -32,6 +35,7 @@ class Server
         struct sockaddr_in          _server_address;
 
         ClientManager&              _client_manager;
+        ChannelManager&             _channel_manager;
 
         // kqueue variables
         int                         _kq;
@@ -48,7 +52,7 @@ class Server
 
     public:
 
-        Server(int port, char* password, ClientManager& client_manager);
+        Server(int port, char* password, ClientManager& client_manager, ChannelManager& channel_manager);
         ~Server();
 
         void                        runServer();

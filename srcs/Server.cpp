@@ -2,8 +2,13 @@
 
 /**
  * @brief Server 객체 초기화 생성자
+ * 
+ * @param port 서버 포트
+ * @param password 서버 비밀번호
+ * @param client_manager ClientManager 객체
+ * @param channel_manager ChannelManager 객체
 */
-Server::Server(int port, char* password, ClientManager& client_manager) : _client_manager(client_manager)
+Server::Server(int port, char* password, ClientManager& client_manager, ChannelManager& channel_manager) : _client_manager(client_manager), _channel_manager(channel_manager)
 {
     _server_port = port;
     _server_password = password;
@@ -24,9 +29,6 @@ Server::~Server()
  * 
  * @param msg 출력할 에러 메시지
  * @param exit_code exit시 반환할 값
- * 
- * @details
- * 오류를 출력하고 exit code로 exit한다
 */
 void Server::systemError(const char* msg, int exit_code)
 {
@@ -37,9 +39,7 @@ void Server::systemError(const char* msg, int exit_code)
 /**
  * @brief socket 생성, bind, listen
  * 
- * @details
- * socket 생성, bind, listen
- * 이때 socket을 O_NONBLOCK으로 설정하여, accept()가 blocking 되지 않도록 한다
+ * @note socket을 O_NONBLOCK으로 설정하여, accept()가 blocking 되지 않도록 한다
 */
 void Server::initServer()
 {
@@ -67,10 +67,7 @@ void Server::initServer()
 }
 
 /**
- * @brief kqueue 초기화
- * 
- * @details
- * kqueue를 초기화하고 server_socket에 대한 read event를 추가
+ * @brief kqueue 초기화 및 read event 추가
 */
 void Server::initKqueue()
 {
@@ -82,7 +79,7 @@ void Server::initKqueue()
 }
 
 /**
- * @brief kqueue에 event 추가
+ * @brief kqueue에 주어진 event 추가
 */
 void Server::addEvent(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
 {

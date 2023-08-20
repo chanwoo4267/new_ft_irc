@@ -8,7 +8,8 @@ int main(int argc, char* argv[])
     else
     {
         ClientManager client_manager;
-        Server server(atoi(argv[1]), argv[2], client_manager);
+        ChannelManager channel_manager;
+        Server server(atoi(argv[1]), argv[2], client_manager, channel_manager);
         server.runServer();
     }
     return 0;

@@ -2,10 +2,8 @@
 
 /**
  * @brief Client 객체를 초기화하는 생성자
- * 
- * @details
- * client_socket을 인자로 받아 초기화한다
- * 이후 _authenticated를 false로, 모든 string값을 빈문자열로 초기화한다
+ *
+ * @param client_socket 클라이언트 소켓
  */
 Client::Client(int client_socket)
 {
