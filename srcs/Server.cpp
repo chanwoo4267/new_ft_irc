@@ -3,7 +3,7 @@
 /**
  * @brief Server 객체 초기화 생성자
 */
-Server::Server(int port, char* password)
+Server::Server(int port, char* password, ClientManager& client_manager) : _client_manager(client_manager)
 {
     _server_port = port;
     _server_password = password;
@@ -122,7 +122,8 @@ void Server::runServer()
                 else
                 {
                     std::cout << "client " << curr_event->ident << " error in run()\n";
-                    deleteClientBySocket(curr_event->ident);
+                    close(curr_event->ident);
+                    _client_manager.deleteClientBySocket(curr_event->ident);
                 }
             }
             else if (curr_event->filter == EVFILT_READ)
@@ -142,59 +143,59 @@ void Server::runServer()
                         if (fcntl(client_socket, F_SETFL, O_NONBLOCK) == -1)
                             systemError("fcntl() error\n", 1);
                         addEvent(_change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-                        _client_list.push_back(Client(client_socket));
+                        _client_manager.addClient(client_socket);
                     }
                 }
-                else if (isClientExistBySocket(curr_event->ident))
+                else if (_client_manager.isClientExistBySocket(curr_event->ident))
                 {
                     char buffer[256];
                     memset(buffer, 0, sizeof(buffer));
                     int n = recv(curr_event->ident, buffer, sizeof(buffer), MSG_NOSIGNAL); // MSG_NOSIGNAL : SIGPIPE 발생 방지
                     if (n >= 0)
                         buffer[n] = '\0';
-                    Client& curr_client = getClientBySocket(curr_event->ident);
-                    curr_client.appendReadBuffer(static_cast<std::string>(buffer));
-                    int len = curr_client.getReadBuffer().length();
+
+                    _client_manager.appendReadBufferBySocket(curr_event->ident, static_cast<std::string>(buffer));
 
                     if (n < 0)
                     {
                         if (errno != EWOULDBLOCK)
                         {
                             std::cerr << "client " << curr_event->ident << " error\n";
-                            deleteClientBySocket(curr_event->ident);
+                            close(curr_event->ident);
+                            _client_manager.deleteClientBySocket(curr_event->ident);
                         }
                         else
                             std::cout << "EWOULDBLOCK\n"; // should not be printed
                     }
                     else if (n == 0)
                     {
-                        deleteClientBySocket(curr_event->ident);
+                        std::cout << "client " << curr_event->ident << " disconnected\n";
+                        close(curr_event->ident);
+                        _client_manager.deleteClientBySocket(curr_event->ident);
                     }
-                    else if (len >= 2 && curr_client.getReadBuffer()[len - 2] == '\r' && curr_client.getReadBuffer()[len - 1] == '\n')
-                    { // if input is not terminated with '\r\n', do not execute command
+                    else if (_client_manager.isReadBufferEndWithCRLF(curr_event->ident)) // if input is terminated with '\r\n', execute command
+                    {
                         // !!! 임시
                         addEvent(_change_list, curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-                        curr_client.setWriteBuffer(curr_client.getReadBuffer());
-                        curr_client.clearReadBuffer();
-
-                        parseAndExecuteCommand(curr_client);
+                        _client_manager.setWriteBufferBySocket(curr_event->ident, _client_manager.getReadBufferBySocket(curr_event->ident));
+                        _client_manager.clearReadBufferBySocket(curr_event->ident);
+                        parseAndExecuteCommand(curr_event->ident);
                     }
                 }
             }
             else if (curr_event->filter == EVFILT_WRITE) // write event
             {
-                if (isClientExistBySocket(curr_event->ident))
+                if (_client_manager.isClientExistBySocket(curr_event->ident))
                 {
-                    Client& curr_client = getClientBySocket(curr_event->ident);
-                    if (curr_client.getWriteBuffer().empty())
+                    if (_client_manager.getWriteBufferBySocket(curr_event->ident).empty())
                     {
                         // should not be printed
                         send(curr_event->ident, "Nothing to Send\n", 16, MSG_NOSIGNAL);
                     }
                     else
                     {
-                        send(curr_event->ident, curr_client.getWriteBuffer().c_str(), curr_client.getWriteBuffer().length(), MSG_NOSIGNAL);
-                        curr_client.clearWriteBuffer();
+                        send(curr_event->ident, _client_manager.getWriteBufferBySocket(curr_event->ident).c_str(), _client_manager.getWriteBufferBySocket(curr_event->ident).length(), MSG_NOSIGNAL);
+                        _client_manager.clearWriteBufferBySocket(curr_event->ident);
                         // write event가 끝났으므로, disable 및 delete 한다
                         addEvent(_change_list, curr_event->ident, EVFILT_WRITE, EV_DISABLE | EV_DELETE, 0, 0, NULL);
                     }
@@ -205,107 +206,11 @@ void Server::runServer()
 }
 
 /**
- * @brief client_list에서 client를 제거
- * 
- * @param client_socket 제거할 client의 socket
- * 
- * @details 
- * 주어진 client_socket을 닫고, client_list에서 해당 client를 제거한다
-*/
-void Server::deleteClientBySocket(int client_socket)
-{
-    close(client_socket);
-    std::vector<Client>::iterator it = _client_list.begin();
-    for (; it != _client_list.end(); ++it)
-    {
-        if (it->getClientSocket() == client_socket)
-        {
-            _client_list.erase(it);
-            break;
-        }
-    }
-}
-
-/**
- * @brief client_list에 client가 존재하는지 확인
- * 
- * @param client_socket 확인할 client의 socket
-*/
-bool Server::isClientExistBySocket(int client_socket)
-{
-    std::vector<Client>::iterator it = _client_list.begin();
-    for (; it != _client_list.end(); ++it)
-    {
-        if (it->getClientSocket() == client_socket)
-            return (true);
-    }
-    return (false);
-}
-
-/**
- * @brief client_list에 client가 존재하는지 확인
- * 
- * @param nickname 확인할 client의 nickname
-*/
-bool Server::isClientExistByNick(std::string nickname)
-{
-    std::vector<Client>::iterator it = _client_list.begin();
-    for (; it != _client_list.end(); ++it)
-    {
-        if (it->getNickname() == nickname)
-            return (true);
-    }
-    return (false);
-}
-
-/**
- * @brief 찾는 client를 client_list에서 찾아 반환
- * 
- * @param client_socket 찾을 client의 socket
- * 
- * @warning client_list에 client_socket이 존재하는지 확인 후 사용할 것
-*/
-Client& Server::getClientBySocket(int client_socket)
-{
-    std::vector<Client>::iterator it = _client_list.begin();
-    for (; it != _client_list.end(); ++it)
-    {
-        if (it->getClientSocket() == client_socket)
-            return (*it);
-    }
-
-    // must not reach
-    std::cerr << "ERROR : client not found\n";
-    return (*it);
-}
-
-/**
- * @brief 찾는 client를 client_list에서 찾아 반환
- * 
- * @param nickname 찾을 client의 nickname
- * 
- * @warning client_list에 nickname이 존재하는지 확인 후 사용할 것
-*/
-Client& Server::getClientByNick(std::string nickname)
-{
-    std::vector<Client>::iterator it = _client_list.begin();
-    for (; it != _client_list.end(); ++it)
-    {
-        if (it->getNickname() == nickname)
-            return (*it);
-    }
-
-    // must not reach
-    std::cerr << "ERROR : client not found\n";
-    return (*it);
-}
-
-/**
  * @brief 주어진 Client의 readBuffer를 파싱하여, 명령어를 실행
  * 
- * @param client 명령어를 실행할 client
+ * @param client_socket 명령어를 실행할 client의 socket
 */
-void Server::parseAndExecuteCommand(Client& client)
+void Server::parseAndExecuteCommand(int client_socket)
 {
     
 }

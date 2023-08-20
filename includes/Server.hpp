@@ -19,8 +19,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "../includes/Client.hpp"
-class Client;
+#include "../includes/ClientManager.hpp"
+class ClientManager;
 
 class Server
 {
@@ -31,7 +31,7 @@ class Server
         char*                       _server_password;
         struct sockaddr_in          _server_address;
 
-        std::vector<Client>         _client_list;
+        ClientManager&              _client_manager;
 
         // kqueue variables
         int                         _kq;
@@ -44,22 +44,14 @@ class Server
                                             int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
         void                        systemError(const char* msg, int exit_code);
 
-        void                        deleteClientBySocket(int client_socket);
-        bool                        isClientExistBySocket(int client_socket);
-        bool                        isClientExistByNick(std::string nickname);
-
-        void                        parseAndExecuteCommand(Client& client);
+        void                        parseAndExecuteCommand(int client_socket);
 
     public:
 
-        Server(int port, char* password);
+        Server(int port, char* password, ClientManager& client_manager);
         ~Server();
 
         void                        runServer();
-
-        /* get methods */
-        Client&                     getClientBySocket(int client_socket);
-        Client&                     getClientByNick(std::string nickname);
 };
 
 #endif

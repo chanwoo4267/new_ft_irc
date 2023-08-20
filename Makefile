@@ -5,12 +5,14 @@ CPP = c++
 
 SRCS =	srcs/main.cpp \
 		srcs/Server.cpp \
-		srcs/Client.cpp 
+		srcs/Client.cpp \
+		srcs/ClientManager.cpp
 
 SRCOBJ = ${SRCS:.cpp=.o}
 
 Include = includes/Server.hpp \
-		  includes/Client.hpp
+		  includes/Client.hpp \
+		  includes/ClientManager.hpp
 
 %.o:%.cpp ${Include}
 	${CPP} ${CPPFLAGS} -c $< -o $@
