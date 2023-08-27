@@ -245,3 +245,71 @@ bool ClientManager::isReadBufferEndWithCRLF(int client_socket)
         return (true);
     return (false);
 }
+
+/**
+ * @brief 특정 nick을 가진 client의 socket을 반환
+ * 
+ * @param nickname 찾을 client의 nickname
+ * 
+ * @return client의 socket
+ * 
+ * @warning client_list에 nickname이 존재하는지 확인 후 사용할 것
+*/
+int ClientManager::getClientSocketByNick(std::string nickname)
+{
+    std::vector<Client>::iterator it = _client_list.begin();
+    for (; it != _client_list.end(); ++it)
+    {
+        if (it->getNickname() == nickname)
+            return (it->getClientSocket());
+    }
+    return (-1);
+}
+
+/**
+ * @brief 특정 socket을 가진 client의 nickname을 반환
+ * 
+ * @param client_socket 찾을 client의 socket
+ * 
+ * @return client의 nickname
+ * 
+ * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
+*/
+std::string ClientManager::getClientNicknameBySocket(int client_socket)
+{
+    std::vector<Client>::iterator it = _client_list.begin();
+    for (; it != _client_list.end(); ++it)
+    {
+        if (it->getClientSocket() == client_socket)
+            return (it->getNickname());
+    }
+    return ("");
+}
+
+/**
+ * @brief 특정 socket을 가진 client의 nickname을 설정
+ * 
+ * @param client_socket 설정할 client의 socket
+ * @param nickname 설정할 nickname
+ * 
+ * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
+*/
+void ClientManager::setClientNicknameBySocket(int client_socket, std::string nickname)
+{
+    Client& curr_client = getClientBySocket(client_socket);
+    curr_client.setNickname(nickname);
+}
+
+/**
+ * @brief 특정 socket을 가진 client의 authenticated를 설정
+ * 
+ * @param client_socket 설정할 client의 socket
+ * @param authenticated 설정할 authenticated
+ * 
+ * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
+*/
+void ClientManager::setClientAuthenticatedBySocket(int client_socket, bool authenticated)
+{
+    Client& curr_client = getClientBySocket(client_socket);
+    curr_client.setAuthenticated(authenticated);
+}

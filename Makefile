@@ -8,7 +8,9 @@ SRCS =	srcs/main.cpp \
 		srcs/Client.cpp \
 		srcs/ClientManager.cpp \
 		srcs/Channel.cpp \
-		srcs/ChannelManager.cpp
+		srcs/ChannelManager.cpp \
+		srcs/Command.cpp \
+		srcs/Utility.cpp
 
 SRCOBJ = ${SRCS:.cpp=.o}
 
@@ -16,7 +18,9 @@ Include = includes/Server.hpp \
 		  includes/Client.hpp \
 		  includes/ClientManager.hpp \
 		  includes/Channel.hpp \
-		  includes/ChannelManager.hpp
+		  includes/ChannelManager.hpp \
+		  includes/Command.hpp \
+		  includes/Utility.hpp
 
 %.o:%.cpp ${Include}
 	${CPP} ${CPPFLAGS} -c $< -o $@
