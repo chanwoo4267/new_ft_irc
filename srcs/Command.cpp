@@ -1,5 +1,8 @@
 #include "../includes/Command.hpp"
 
+// arg는 명령어를 제외한 나머지 부분이 한 문자열로 들어감
+// 필요하다면 파싱하여 사용할 것
+
 void PassCommand::execute()
 {
     printCommandMessage(2, _client_socket, "PASS " + _arg);

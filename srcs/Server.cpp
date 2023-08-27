@@ -214,6 +214,7 @@ void Server::runServer()
 /**
  * @brief 주어진 command와 argument를 통해 Command 객체 생성
  * 
+ * @param client_socket 명령어를 실행할 client의 socket
  * @param command 명령어
  * @param args 명령어 인자
  * 
@@ -300,11 +301,6 @@ void Server::sendMessageToClientByNick(std::string nick, std::string message)
     }
 }
 
-/**
- * @brief 서버 비밀번호 반환
- * 
- * @return int 서버 비밀번호
-*/
 std::string Server::getPassword() const
 {
     return _server_password;
