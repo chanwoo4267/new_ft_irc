@@ -5,10 +5,8 @@
  * 
  * @param port 서버 포트
  * @param password 서버 비밀번호
- * @param client_manager ClientManager 객체
- * @param channel_manager ChannelManager 객체
 */
-Server::Server(int port, char* password, ClientManager& client_manager, ChannelManager& channel_manager) : _client_manager(client_manager), _channel_manager(channel_manager)
+Server::Server(int port, char* password)
 {
     _server_port = port;
     _server_password = password;

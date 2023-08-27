@@ -34,8 +34,8 @@ class Server
         char*                       _server_password;
         struct sockaddr_in          _server_address;
 
-        ClientManager&              _client_manager;
-        ChannelManager&             _channel_manager;
+        ClientManager               _client_manager;
+        ChannelManager              _channel_manager;
 
         // kqueue variables
         int                         _kq;
@@ -52,7 +52,7 @@ class Server
 
     public:
 
-        Server(int port, char* password, ClientManager& client_manager, ChannelManager& channel_manager);
+        Server(int port, char* password);
         ~Server();
 
         void                        runServer();

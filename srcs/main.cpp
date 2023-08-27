@@ -7,9 +7,7 @@ int main(int argc, char* argv[])
         std::cerr << "Usage: ./ircserv [port] [password]" << std::endl;
     else
     {
-        ClientManager client_manager;
-        ChannelManager channel_manager;
-        Server server(atoi(argv[1]), argv[2], client_manager, channel_manager);
+        Server server(atoi(argv[1]), argv[2]);
         server.runServer();
     }
     return 0;
