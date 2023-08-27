@@ -221,7 +221,7 @@ void Server::runServer()
  * @return Command 객체
  * 
  * @note
- * 명령어가 존재하지 않는 경우, NULL을 반환한다
+ * 주어진 명령어가 존재하지 않는 경우, NULL을 반환한다
 */
 Command* Server::createCommand(int client_socket, std::string command, std::string arg)
 {
@@ -229,6 +229,8 @@ Command* Server::createCommand(int client_socket, std::string command, std::stri
         return new PassCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "nick")
         return new NickCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "user")
+        return new UserCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "privmsg")
         return new PrivmsgCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else
@@ -236,9 +238,12 @@ Command* Server::createCommand(int client_socket, std::string command, std::stri
 }
 
 /**
- * @brief 주어진 Client의 readBuffer를 파싱하여, 명령어를 실행
+ * @brief 주어진 Client의 readBuffer를 받아와 명령어를 분리하고, 이에 맞는 명령을 실행
  * 
  * @param client_socket 명령어를 실행할 client의 socket
+ * 
+ * @note
+ * 명령어가 존재하지 않는 경우, 서버에 오류 메시지 출력
 */
 void Server::parseAndExecuteCommand(int client_socket)
 {

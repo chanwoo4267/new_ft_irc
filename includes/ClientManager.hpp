@@ -23,8 +23,7 @@ class ClientManager
         void                    addClient(int client_socket);
         void                    deleteClientBySocket(int client_socket);
         void                    deleteClientByNick(std::string nickname);
-        bool                    isClientExistBySocket(int client_socket);
-        bool                    isClientExistByNick(std::string nickname);
+        
 
         /* client set methods */
 
@@ -46,7 +45,13 @@ class ClientManager
         void                    setWriteBufferBySocket(int client_socket, std::string str);
         std::string             getReadBufferBySocket(int client_socket);
         std::string             getWriteBufferBySocket(int client_socket);
+
+        /* check methods */
+
         bool                    isReadBufferEndWithCRLF(int client_socket);
+        bool                    isClientExistBySocket(int client_socket);
+        bool                    isClientExistByNick(std::string nickname);
+        bool                    isClientAuthenticatedBySocket(int client_socket);
 };
 
 #endif

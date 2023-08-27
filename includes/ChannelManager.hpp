@@ -12,12 +12,12 @@ class ChannelManager
 {
     private:
         std::vector<Channel>    _channel_list;
+        Channel&                getChannel(std::string channel_name);
 
     public:
         void                    addChannel(std::string channel_name, std::string oper_nick);
         void                    deleteChannel(std::string channel_name);
         bool                    isChannelExist(std::string channel_name);
-        Channel&                getChannel(std::string channel_name);
 };
 
 #endif

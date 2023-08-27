@@ -51,15 +51,15 @@ void printCommandMessage(int mode, int client_socket, std::string message)
 {
     if (mode == 0)
     {
-        std::cerr << RED << "[ERROR] : " << CYAN << "Client " << client_socket << " : " << DEFAULT << message << std::endl;
+        std::cerr << RED << "[CRITICAL ERROR] : " << CYAN << "Client " << client_socket << " : " << DEFAULT << message << std::endl;
     }
     else if (mode == 1)
     {
-        std::cout << YELLOW << "[WARNING] : " << CYAN << "Client " << client_socket << " : " << DEFAULT << message << std::endl;
+        std::cout << YELLOW << "[FAIL] : " << CYAN << "Client " << client_socket << " : " << DEFAULT << message << std::endl;
     }
     else if (mode == 2)
     {
-        std::cout << GREEN << "[LOG] : " << CYAN << "Client " << client_socket << " : " << DEFAULT << message << std::endl;
+        std::cout << GREEN << "[SUCCESS] : " << CYAN << "Client " << client_socket << " : " << DEFAULT << message << std::endl;
     }
     else
     {

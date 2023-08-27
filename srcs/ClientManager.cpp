@@ -313,3 +313,18 @@ void ClientManager::setClientAuthenticatedBySocket(int client_socket, bool authe
     Client& curr_client = getClientBySocket(client_socket);
     curr_client.setAuthenticated(authenticated);
 }
+
+/**
+ * @brief 특정 socket을 가진 client가 인증되었는지 확인
+ * 
+ * @param client_socket 확인할 client의 socket
+ * 
+ * @return 인증되었으면 true, 아니면 false
+ * 
+ * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
+*/
+bool ClientManager::isClientAuthenticatedBySocket(int client_socket)
+{
+    Client& curr_client = getClientBySocket(client_socket);
+    return (curr_client.getAuthenticated());
+}
