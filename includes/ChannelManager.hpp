@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../includes/Channel.hpp"
+#include "../includes/Utility.hpp"
 class Channel;
 
 class ChannelManager
@@ -21,6 +22,7 @@ class ChannelManager
         void                        deleteChannel(std::string channel_name);
         void                        deleteClientFromChannel(std::string channel_name, std::string nickname);
         void                        deleteOperFromChannel(std::string channel_name, std::string nickname);
+        void                        deleteClientFromAllChannel(std::string nickname);
 
         bool                        isChannelExist(std::string channel_name);
         bool                        isClientInChannel(std::string channel_name, std::string nickname);

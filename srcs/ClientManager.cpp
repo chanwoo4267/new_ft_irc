@@ -15,6 +15,8 @@ void ClientManager::addClient(int client_socket)
  * @brief client_list에서 client를 제거
  * 
  * @param client_socket 제거할 client의 socket
+ * 
+ * @warning channel의 client_list는 따로 제거해야 함
 */
 void ClientManager::deleteClientBySocket(int client_socket)
 {
@@ -343,4 +345,21 @@ void ClientManager::setClientNamesBySocket(int client_socket, std::string userna
     curr_client.setRealname(realname);
     curr_client.setServername(servername);
     curr_client.setUsername(username);
+}
+
+/**
+ * @brief PASS, NICK, USER command가 모두 수행되었는지 확인
+ * 
+ * @param client_socket 확인할 client의 socket
+ * 
+ * @return available하면 true, 아니면 false
+ * 
+ * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
+*/
+bool ClientManager::isClientReadyBySocket(int client_socket)
+{
+    Client& curr_client = getClientBySocket(client_socket);
+    if (!curr_client.getAuthenticated() || curr_client.getNickname() == "" || curr_client.getUsername() == "" || curr_client.getHostname() == "" || curr_client.getRealname() == "" || curr_client.getServername() == "")
+        return (false);
+    return (true);
 }

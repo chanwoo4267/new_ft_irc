@@ -1,8 +1,5 @@
 #include "../includes/Command.hpp"
 
-// arg는 명령어를 제외한 나머지 부분이 한 문자열로 들어감
-// 필요하다면 파싱하여 사용할 것
-
 void PassCommand::execute()
 {
     printCommandMessage(2, _client_socket, "PASS " + _arg);
@@ -98,7 +95,7 @@ void PrivmsgCommand::execute()
         return;
     }
 
-    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
         printCommandMessage(1, _client_socket, "Not authenticated");
         return;
@@ -179,7 +176,7 @@ void JoinCommand::execute()
         return;
     }
 
-    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
         printCommandMessage(1, _client_socket, "Not authenticated");
         return;
@@ -243,7 +240,7 @@ void ModeCommand::execute()
         return;
     }
 
-    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
         printCommandMessage(1, _client_socket, "Not authenticated");
         return;
@@ -394,7 +391,7 @@ void InviteCommand::execute()
         return;
     }
 
-    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
         printCommandMessage(1, _client_socket, "Not authenticated");
         return;
@@ -458,7 +455,7 @@ void TopicCommand::execute()
         return;
     }
 
-    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
         printCommandMessage(1, _client_socket, "Not authenticated");
         return;
@@ -518,7 +515,7 @@ void KickCommand::execute()
         return;
     }
 
-    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
         printCommandMessage(1, _client_socket, "Not authenticated");
         return;

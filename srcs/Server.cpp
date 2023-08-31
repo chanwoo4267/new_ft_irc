@@ -154,6 +154,7 @@ void Server::runServer()
                             systemError("fcntl() error", 1);
                         addEvent(_change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
                         _client_manager.addClient(client_socket);
+                        printServerMessage(2, "client " + std::to_string(client_socket) + " connected");
                     }
                 }
                 else if (_client_manager.isClientExistBySocket(curr_event->ident))
@@ -177,11 +178,13 @@ void Server::runServer()
                         else
                             printServerMessage(1, "EWOULDBLOCK");
                     }
-                    else if (n == 0)
+                    else if (n == 0) // nc에서 cltr+c, cltr+d 로 접속종료
                     {
                         printServerMessage(2, "client " + std::to_string(curr_event->ident) + " disconnected");
                         close(curr_event->ident);
-                        _client_manager.deleteClientBySocket(curr_event->ident);
+                        std::string del_nick = _client_manager.getClientNicknameBySocket(curr_event->ident);
+                        _client_manager.deleteClientBySocket(curr_event->ident); // client list에서 삭제
+                        _channel_manager.deleteClientFromAllChannel(del_nick); // channel list에서 해당 클라이언트 삭제
                     }
                     else if (_client_manager.isReadBufferEndWithCRLF(curr_event->ident)) // if input is terminated with '\r\n', execute command
                     {

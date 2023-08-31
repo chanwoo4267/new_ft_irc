@@ -35,12 +35,17 @@ void Channel::addChannelMember(std::string nickname)
  * @param nickname 삭제할 멤버의 닉네임
  * 
  * @note 해당 멤버가 없으면 아무것도 하지 않는다
+ * 
+ * @warning 멤버가 0명이면 채널을 삭제해야한다
+ * @warning operator일경우 따로 deleteChannelOperator를 호출해야한다
 */
 void Channel::deleteChannelMember(std::string nickname)
 {
     std::vector<std::string>::iterator it = std::find(_channel_member_list.begin(), _channel_member_list.end(), nickname);
     if (it != _channel_member_list.end())
+    {
         _channel_member_list.erase(it);
+    }
 }
 
 /**

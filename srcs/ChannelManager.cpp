@@ -295,3 +295,33 @@ void ChannelManager::setChannelTopic(std::string channel_name, std::string topic
     Channel& channel = getChannel(channel_name);
     channel.setChannelTopic(topic);
 }
+
+/**
+ * @brief 주어진 클라이언트를 모든 채널에서 삭제
+ * 
+ * @param nickname 삭제할 클라이언트의 닉네임
+ * 
+ * @note 클라이언트를 채널의 멤버목록, 오퍼레이터목록에서 삭제하고, 채널의 멤버목록이 비어있으면 채널을 삭제한다
+*/
+void ChannelManager::deleteClientFromAllChannel(std::string nickname)
+{
+    std::vector<Channel>::iterator it = _channel_list.begin();
+    for (; it != _channel_list.end(); )
+    {
+        if (it->isMemberExist(nickname))
+        {
+            it->deleteChannelMember(nickname);
+            it->deleteChannelOperator(nickname);
+
+            if (it->getChannelMemberList().size() == 0)
+            {
+                printServerMessage(2, "Channel " + it->getChannelName() + " has been deleted, because it is empty");
+                it = _channel_list.erase(it); // iteartor가 erase() 함수의 반환값을 가리키도록 한다
+            }
+            else
+                ++it;
+        }
+        else
+            ++it;
+    }
+}
