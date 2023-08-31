@@ -74,6 +74,7 @@ class Server
         void                        runServer();
 
         void                        sendMessageToClientByNick(std::string nick, std::string message);
+        void                        sendMessageToChannel(std::string nick, std::string channel, std::string message);
 
         std::string                 getPassword() const;
 };

@@ -6,14 +6,15 @@
 #include <vector>
 
 // mode command is only for operators of channel
-// mode #ch [+|-] [i|t] -> toggle invite-only, toggle topic changable only by opers
-// mode #ch +k password / mode #ch -k -> set password
-// mode #ch +l user_limit / mode #ch -l -> set user limit
+// mode #ch [+|-] [i|t] -> toggle invite-only, toggle topic changable only by opers     JOIN, INVITE, TOPIC
+// mode #ch +k password / mode #ch -k -> set password                                   JOIN
+// mode #ch +l user_limit / mode #ch -l -> set user limit                               JOIN, INVITE
 // mode #ch [+|-] o nick -> give/remove oper privileges
 
 class Channel
 {
     private:
+        /* channel명은 "#ㅁㄴㅇㄹ" 형태로 유지 */
         std::string                 _channel_name;
         std::vector<std::string>    _channel_member_list;
         std::vector<std::string>    _channel_operator_list;
@@ -38,6 +39,7 @@ class Channel
             bool                        isOperatorExist(std::string nickname);
     
             /* get methods */
+            std::vector<std::string>    getChannelMemberList() const;
             std::string                 getChannelName() const;
             std::string                 getChannelTopic() const;
             std::string                 getChannelPassword() const;

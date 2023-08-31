@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include <sstream>
 
 #define BLACK "\033[0;30m"
 #define RED   "\033[0;31m"
@@ -16,5 +18,7 @@
 
 void printServerMessage(int mode, std::string message);
 void printCommandMessage(int mode, int client_socket, std::string message);
+
+std::vector<std::string> splitString(std::string str, char delim);
 
 #endif

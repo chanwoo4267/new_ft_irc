@@ -66,3 +66,22 @@ void printCommandMessage(int mode, int client_socket, std::string message)
         std::cerr << BLUE << "[UNKNOWN] : " << CYAN << "Client " << client_socket << " : " << DEFAULT << message << std::endl;
     }
 }
+
+/**
+ * @brief 문자열을 delim을 기준으로 분리
+ * 
+ * @param str 분리할 문자열
+ * @param delim 구분자
+ * 
+ * @return 분리된 문자열
+*/
+std::vector<std::string> splitString(std::string str, char delim)
+{
+    std::vector<std::string> result;
+    std::stringstream ss(str);
+    std::string tmp;
+
+    while (getline(ss, tmp, delim))
+        result.push_back(tmp);
+    return (result);
+}

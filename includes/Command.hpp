@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../includes/Server.hpp"
+#include "../includes/Utility.hpp"
 
 class Server;
 class ClientManager;
@@ -51,6 +52,13 @@ class PrivmsgCommand : public Command
 {
     public:
         PrivmsgCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg) {}
+        void execute();
+};
+
+class JoinCommand : public Command
+{
+    public:
+        JoinCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg) {}
         void execute();
 };
 

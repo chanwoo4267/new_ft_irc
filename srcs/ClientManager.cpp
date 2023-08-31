@@ -328,3 +328,19 @@ bool ClientManager::isClientAuthenticatedBySocket(int client_socket)
     Client& curr_client = getClientBySocket(client_socket);
     return (curr_client.getAuthenticated());
 }
+
+/**
+ * @brief 특정 socket을 가진 client의 username, hostname, realname, servername을 설정
+ * 
+ * @param client_socket 설정할 client의 socket
+ * 
+ * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
+*/
+void ClientManager::setClientNamesBySocket(int client_socket, std::string username, std::string hostname, std::string realname, std::string servername)
+{
+    Client& curr_client = getClientBySocket(client_socket);
+    curr_client.setHostname(hostname);
+    curr_client.setRealname(realname);
+    curr_client.setServername(servername);
+    curr_client.setUsername(username);
+}

@@ -140,6 +140,11 @@ bool Channel::getChannelModeK() const
     return (_channel_mode_k);
 }
 
+std::vector<std::string> Channel::getChannelMemberList() const
+{
+    return (_channel_member_list);
+}
+
 void Channel::setChannelName(std::string channel_name)
 {
     _channel_name = channel_name;
@@ -179,3 +184,4 @@ void Channel::setChannelModeK(bool channel_mode_k)
 {
     _channel_mode_k = channel_mode_k;
 }
+

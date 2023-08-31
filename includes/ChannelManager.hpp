@@ -11,13 +11,18 @@ class Channel;
 class ChannelManager
 {
     private:
-        std::vector<Channel>    _channel_list;
-        Channel&                getChannel(std::string channel_name);
+        std::vector<Channel>        _channel_list;
+        Channel&                    getChannel(std::string channel_name);
 
     public:
-        void                    addChannel(std::string channel_name, std::string oper_nick);
-        void                    deleteChannel(std::string channel_name);
-        bool                    isChannelExist(std::string channel_name);
+        void                        addChannel(std::string channel_name, std::string oper_nick);
+        void                        deleteChannel(std::string channel_name);
+
+        bool                        isChannelExist(std::string channel_name);
+        bool                        isClientInChannel(std::string channel_name, std::string nickname);
+        bool                        isClientOperatorInChannel(std::string channel_name, std::string nickname);
+
+        std::vector<std::string>    getChannelMemberList(std::string channel_name);
 };
 
 #endif
