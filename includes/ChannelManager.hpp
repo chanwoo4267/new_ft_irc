@@ -16,13 +16,20 @@ class ChannelManager
 
     public:
         void                        addChannel(std::string channel_name, std::string oper_nick);
+        void                        addClientToChannel(std::string channel_name, std::string nickname);
+        void                        addOperToChannel(std::string channel_name, std::string nickname);
         void                        deleteChannel(std::string channel_name);
+        void                        deleteClientFromChannel(std::string channel_name, std::string nickname);
+        void                        deleteOperFromChannel(std::string channel_name, std::string nickname);
 
         bool                        isChannelExist(std::string channel_name);
         bool                        isClientInChannel(std::string channel_name, std::string nickname);
         bool                        isClientOperatorInChannel(std::string channel_name, std::string nickname);
 
         std::vector<std::string>    getChannelMemberList(std::string channel_name);
+        bool                        getChannelMode(std::string channel_name, std::string mode);
+        std::string                 getChannelPassword(std::string channel_name);
+        int                         getChannelUserLimit(std::string channel_name);
 };
 
 #endif

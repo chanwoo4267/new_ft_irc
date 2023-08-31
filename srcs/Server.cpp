@@ -233,6 +233,16 @@ Command* Server::createCommand(int client_socket, std::string command, std::stri
         return new UserCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "privmsg")
         return new PrivmsgCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "join")
+        return new JoinCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "mode")
+        return new ModeCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "invite")
+        return new InviteCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "topic")
+        return new TopicCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "kick")
+        return new KickCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else
         return NULL;
 }

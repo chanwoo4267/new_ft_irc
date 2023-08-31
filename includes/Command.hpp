@@ -62,4 +62,32 @@ class JoinCommand : public Command
         void execute();
 };
 
+class ModeCommand : public Command
+{
+    public:
+        ModeCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg) {}
+        void execute();
+};
+
+class InviteCommand : public Command
+{
+    public:
+        InviteCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg) {}
+        void execute();
+};
+
+class TopicCommand : public Command
+{
+    public:
+        TopicCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg) {}
+        void execute();
+};
+
+class KickCommand : public Command
+{
+    public:
+        KickCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg){}
+        void execute();
+};
+
 #endif

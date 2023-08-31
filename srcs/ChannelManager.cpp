@@ -17,6 +17,34 @@ void ChannelManager::addChannel(std::string channel_name, std::string oper_nick)
 }
 
 /**
+ * @brief 주어진 채널에 주어진 클라이언트 추가
+ * 
+ * @param channel_name 추가할 채널의 이름
+ * @param nickname 추가할 클라이언트의 닉네임
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용해야한다
+*/
+void ChannelManager::addClientToChannel(std::string channel_name, std::string nickname)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.addChannelMember(nickname);
+}
+
+/**
+ * @brief 주어진 채널에 주어진 클라이언트를 오퍼레이터로 추가
+ * 
+ * @param channel_name 추가할 채널의 이름
+ * @param nickname 추가할 클라이언트의 닉네임
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용해야한다
+*/
+void ChannelManager::addOperToChannel(std::string channel_name, std::string nickname)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.addChannelOperator(nickname);
+}
+
+/**
  * @brief 채널 목록에서 채널 삭제
  * 
  * @param channel_name 삭제할 채널의 이름
@@ -34,6 +62,34 @@ void ChannelManager::deleteChannel(std::string channel_name)
             break;
         }
     }
+}
+
+/**
+ * @brief 주어진 채널에서 주어진 클라이언트 삭제
+ * 
+ * @param channel_name 삭제할 채널의 이름
+ * @param nickname 삭제할 클라이언트의 닉네임
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용해야한다
+*/
+void ChannelManager::deleteClientFromChannel(std::string channel_name, std::string nickname)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.deleteChannelMember(nickname);
+}
+
+/**
+ * @brief 주어진 채널에서 주어진 클라이언트를 오퍼레이터에서 삭제
+ * 
+ * @param channel_name 삭제할 채널의 이름
+ * @param nickname 삭제할 클라이언트의 닉네임
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용해야한다
+*/
+void ChannelManager::deleteOperFromChannel(std::string channel_name, std::string nickname)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.deleteChannelOperator(nickname);
 }
 
 /**
@@ -119,4 +175,60 @@ std::vector<std::string> ChannelManager::getChannelMemberList(std::string channe
 {
     Channel& channel = getChannel(channel_name);
     return channel.getChannelMemberList();
+}
+
+/**
+ * @brief 주어진 채널의 모드 가져오기
+ * 
+ * @param channel_name 모드를 가져올 채널의 이름
+ * @param mode 가져올 모드
+ * 
+ * @return 모드
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용
+ * @note mode는 I, K, L, T 중 하나여야 한다
+*/
+bool ChannelManager::getChannelMode(std::string channel_name, std::string mode)
+{
+    Channel& channel = getChannel(channel_name);
+    if (mode == "I")
+        return channel.getChannelModeI();
+    else if (mode == "K")
+        return channel.getChannelModeK();
+    else if (mode == "L")
+        return channel.getChannelModeL();
+    else if (mode == "T")
+        return channel.getChannelModeT();
+    else
+        return false;
+}
+
+/**
+ * @brief 주어진 채널의 비밀번호 가져오기
+ * 
+ * @param channel_name 비밀번호를 가져올 채널의 이름
+ * 
+ * @return 비밀번호
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용
+*/
+std::string ChannelManager::getChannelPassword(std::string channel_name)
+{
+    Channel& channel = getChannel(channel_name);
+    return channel.getChannelPassword();
+}
+
+/**
+ * @brief 주어진 채널의 유저 제한 가져오기
+ * 
+ * @param channel_name 유저 제한을 가져올 채널의 이름
+ * 
+ * @return 유저 제한
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용
+*/
+int ChannelManager::getChannelUserLimit(std::string channel_name)
+{
+    Channel& channel = getChannel(channel_name);
+    return channel.getChannelUserLimit();
 }
