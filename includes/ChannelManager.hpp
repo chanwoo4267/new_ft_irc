@@ -29,7 +29,13 @@ class ChannelManager
         std::vector<std::string>    getChannelMemberList(std::string channel_name);
         bool                        getChannelMode(std::string channel_name, std::string mode);
         std::string                 getChannelPassword(std::string channel_name);
-        int                         getChannelUserLimit(std::string channel_name);
+        unsigned long               getChannelUserLimit(std::string channel_name);
+        std::string                 getChannelTopic(std::string channel_name);
+
+        void                        setChannelMode(std::string channel_name, std::string mode, bool value);
+        void                        setChannelPassword(std::string channel_name, std::string password);
+        void                        setChannelUserLimit(std::string channel_name, unsigned long user_limit);
+        void                        setChannelTopic(std::string channel_name, std::string topic);
 };
 
 #endif

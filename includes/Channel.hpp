@@ -21,7 +21,7 @@ class Channel
         std::string                 _channel_topic;
 
         std::string                 _channel_password;
-        int                         _channel_user_limit;
+        unsigned long               _channel_user_limit;
         bool                        _channel_mode_i;
         bool                        _channel_mode_t;
         bool                        _channel_mode_l;
@@ -43,7 +43,7 @@ class Channel
             std::string                 getChannelName() const;
             std::string                 getChannelTopic() const;
             std::string                 getChannelPassword() const;
-            int                         getChannelUserLimit() const;
+            unsigned long               getChannelUserLimit() const;
             bool                        getChannelModeI() const;
             bool                        getChannelModeT() const;
             bool                        getChannelModeL() const;
@@ -53,7 +53,7 @@ class Channel
             void                        setChannelName(std::string channel_name);
             void                        setChannelTopic(std::string channel_topic);
             void                        setChannelPassword(std::string channel_password);
-            void                        setChannelUserLimit(int channel_user_limit);
+            void                        setChannelUserLimit(unsigned long channel_user_limit);
             void                        setChannelModeI(bool channel_mode_i);
             void                        setChannelModeT(bool channel_mode_t);
             void                        setChannelModeL(bool channel_mode_l);

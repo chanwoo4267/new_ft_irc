@@ -114,7 +114,7 @@ std::string Channel::getChannelPassword() const
     return (_channel_password);
 }
 
-int Channel::getChannelUserLimit() const
+unsigned long Channel::getChannelUserLimit() const
 {
     return (_channel_user_limit);
 }
@@ -160,7 +160,7 @@ void Channel::setChannelPassword(std::string channel_password)
     _channel_password = channel_password;
 }
 
-void Channel::setChannelUserLimit(int channel_user_limit)
+void Channel::setChannelUserLimit(unsigned long channel_user_limit)
 {
     _channel_user_limit = channel_user_limit;
 }

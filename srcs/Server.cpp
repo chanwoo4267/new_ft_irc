@@ -308,7 +308,7 @@ void Server::sendMessageToClientByNick(std::string nick, std::string message)
     if (_client_manager.isClientExistByNick(nick))
     {
         int client_socket = _client_manager.getClientSocketByNick(nick);
-        addPrintEvent(client_socket, message);
+        addPrintEvent(client_socket, message + "\n"); // 출력 메시지 가독성을 위해 개행 추가
     }
     else
     {

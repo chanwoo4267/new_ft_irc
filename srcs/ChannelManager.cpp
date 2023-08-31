@@ -204,6 +204,29 @@ bool ChannelManager::getChannelMode(std::string channel_name, std::string mode)
 }
 
 /**
+ * @brief 주어진 채널의 모드 설정하기
+ * 
+ * @param channel_name 모드를 설정할 채널의 이름
+ * @param mode 설정할 모드
+ * @param value 설정할 값
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용
+ * @note mode는 I, K, L, T 중 하나여야 한다
+*/
+void ChannelManager::setChannelMode(std::string channel_name, std::string mode, bool value)
+{
+    Channel& channel = getChannel(channel_name);
+    if (mode == "I")
+        channel.setChannelModeI(value);
+    else if (mode == "K")
+        channel.setChannelModeK(value);
+    else if (mode == "L")
+        channel.setChannelModeL(value);
+    else if (mode == "T")
+        channel.setChannelModeT(value);
+}
+
+/**
  * @brief 주어진 채널의 비밀번호 가져오기
  * 
  * @param channel_name 비밀번호를 가져올 채널의 이름
@@ -227,8 +250,48 @@ std::string ChannelManager::getChannelPassword(std::string channel_name)
  * 
  * @warning 채널이 존재하는지 확인 후 사용
 */
-int ChannelManager::getChannelUserLimit(std::string channel_name)
+unsigned long ChannelManager::getChannelUserLimit(std::string channel_name)
 {
     Channel& channel = getChannel(channel_name);
     return channel.getChannelUserLimit();
+}
+
+/**
+ * @brief 주어진 채널의 비밀번호 설정하기
+ * 
+ * @param channel_name 비밀번호를 설정할 채널의 이름
+ * @param password 설정할 비밀번호
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용
+*/
+void ChannelManager::setChannelPassword(std::string channel_name, std::string password)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.setChannelPassword(password);
+}
+
+/**
+ * @brief 주어진 채널의 유저 제한 설정하기
+ * 
+ * @param channel_name 유저 제한을 설정할 채널의 이름
+ * @param user_limit 설정할 유저 제한
+ * 
+ * @warning 채널이 존재하는지 확인 후 사용
+*/
+void ChannelManager::setChannelUserLimit(std::string channel_name, unsigned long user_limit)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.setChannelUserLimit(user_limit);
+}
+
+std::string ChannelManager::getChannelTopic(std::string channel_name)
+{
+    Channel& channel = getChannel(channel_name);
+    return channel.getChannelTopic();
+}
+
+void ChannelManager::setChannelTopic(std::string channel_name, std::string topic)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.setChannelTopic(topic);
 }

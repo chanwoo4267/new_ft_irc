@@ -5,7 +5,7 @@
 
 void PassCommand::execute()
 {
-    printServerMessage(2, "PASS " + _arg);
+    printCommandMessage(2, _client_socket, "PASS " + _arg);
 
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
@@ -25,7 +25,7 @@ void PassCommand::execute()
 
 void NickCommand::execute()
 {
-    printServerMessage(2, "NICK " + _arg);
+    printCommandMessage(2, _client_socket, "NICK " + _arg);
 
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
@@ -224,6 +224,7 @@ void JoinCommand::execute()
         }
 
         _channel_manager.addClientToChannel(channel_name, client_nick);
+        printCommandMessage(2, _client_socket, "Channel " + channel_name + " joined");
     }
     else // channel does not exist
     {
@@ -234,20 +235,342 @@ void JoinCommand::execute()
 
 void ModeCommand::execute()
 {
+    printCommandMessage(2, _client_socket, "MODE " + _arg);
 
+    if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
+    {
+        printCommandMessage(1, _client_socket, "Not connected to server");
+        return;
+    }
+
+    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    {
+        printCommandMessage(1, _client_socket, "Not authenticated");
+        return;
+    }
+
+
+    // parsing arguments
+    size_t pos = _arg.find(' ');
+    std::string channel_name = "";
+    std::string mode = "";
+    std::string value = "";
+    std::string client_nick = _client_manager.getClientNicknameBySocket(_client_socket);
+    if (pos == std::string::npos)
+    {
+        printCommandMessage(1, _client_socket, "Invalid number of arguments");
+        return;
+    }
+
+    channel_name = _arg.substr(0, pos);
+    mode = _arg.substr(pos + 1);
+    pos = mode.find(' ');
+    if (pos != std::string::npos)
+    {
+        value = mode.substr(pos + 1);
+        mode = mode.substr(0, pos);
+    }
+    // parsing end
+
+    if (_channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false) // client is not operator of channel
+    {
+        printCommandMessage(1, _client_socket, "Client is not operator of channel");
+        return;
+    }
+
+    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
+    {
+        printCommandMessage(1, _client_socket, "Channel does not exist");
+        return;
+    }
+
+    if (mode.length() != 2 || (mode[0] != '+' && mode[0] != '-')) // invalid mode input
+    {
+        printCommandMessage(1, _client_socket, "Invalid mode");
+        return;
+    }
+
+    if (mode[1] == 'i' || mode[1] == 'I')
+        _channel_manager.setChannelMode(channel_name, "I", mode[0] == '+');
+    else if (mode[1] == 't' || mode[1] == 'T')
+        _channel_manager.setChannelMode(channel_name, "T", mode[0] == '+');
+    else if (mode[1] == 'k' || mode[1] == 'K')
+    {
+        if (mode[0] == '+') // set channel password
+        {
+            if (value == "") // no password input
+            {
+                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                return;
+            }
+            _channel_manager.setChannelMode(channel_name, "K", true);
+            _channel_manager.setChannelPassword(channel_name, value);
+            printCommandMessage(2, _client_socket, "Channel password set to " + value);
+        }
+        else // remove channel password
+        {
+            _channel_manager.setChannelMode(channel_name, "K", false);
+            _channel_manager.setChannelPassword(channel_name, "");
+            printCommandMessage(2, _client_socket, "Channel password removed");
+        }
+    }
+    else if (mode[1] == 'l' || mode[1] == 'L')
+    {
+        if (mode[0] == '+')
+        {
+            if (value == "")
+            {
+                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                return;
+            }
+            _channel_manager.setChannelMode(channel_name, "L", true);
+            _channel_manager.setChannelUserLimit(channel_name, atoi(value.c_str()));
+            printCommandMessage(2, _client_socket, "Channel user limit set to " + value);
+        }
+        else
+        {
+            _channel_manager.setChannelMode(channel_name, "L", false);
+            _channel_manager.setChannelUserLimit(channel_name, 0);
+            printCommandMessage(2, _client_socket, "Channel user limit removed");
+        }
+    }
+    else if (mode[1] == 'o' || mode[1] == 'O')
+    {
+        if (mode[0] == '+') // give oper privilege
+        {
+            if (value == "")
+            {
+                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                return;
+            }
+
+            if (_channel_manager.isClientOperatorInChannel(channel_name, value)) // client is already operator of channel
+            {
+                printCommandMessage(1, _client_socket, "Client is already operator of channel");
+                return;
+            }
+
+            _channel_manager.addOperToChannel(channel_name, value);
+            printCommandMessage(2, _client_socket, "Client " + value + " added to channel operator list");
+        }
+        else // remove oper privilege
+        {
+            if (value == "")
+            {
+                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                return;
+            }
+
+            if (_channel_manager.isClientOperatorInChannel(channel_name, value) == false) // client is not operator of channel
+            {
+                printCommandMessage(1, _client_socket, "Client is not operator of channel");
+                return;
+            }
+
+            if (value == client_nick) // cannot remove yourself from operator list
+            {
+                printCommandMessage(1, _client_socket, "Cannot remove yourself from operator list");
+                return;
+            }
+
+            _channel_manager.deleteOperFromChannel(channel_name, value);
+            printCommandMessage(2, _client_socket, "Client " + value + " removed from channel operator list");
+        }
+    }
+    else
+    {
+        printCommandMessage(1, _client_socket, "Invalid mode");
+        return;
+    }
 }
 
 void InviteCommand::execute()
 {
-    
+    printCommandMessage(2, _client_socket, "INVITE " + _arg);
+
+    if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
+    {
+        printCommandMessage(1, _client_socket, "Not connected to server");
+        return;
+    }
+
+    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    {
+        printCommandMessage(1, _client_socket, "Not authenticated");
+        return;
+    }
+
+    size_t pos = _arg.find(' ');
+    std::string invited = "";
+    std::string channel_name = "";
+    std::string invitor = _client_manager.getClientNicknameBySocket(_client_socket);
+
+    if (pos == std::string::npos)
+    {
+        printCommandMessage(1, _client_socket, "Invalid number of arguments");
+        return;
+    }
+    invited = _arg.substr(0, pos);
+    channel_name = _arg.substr(pos + 1);
+
+    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
+    {
+        printCommandMessage(1, _client_socket, "Channel does not exist");
+        return;
+    }
+
+    if (_channel_manager.isClientInChannel(channel_name, invitor) == false) // invitor is not in channel
+    {
+        printCommandMessage(1, _client_socket, "Invitor is not in channel");
+        return;
+    }
+
+    // channel is invite-only, then only operator can invite
+    if (_channel_manager.getChannelMode(channel_name, "I") && _channel_manager.isClientOperatorInChannel(channel_name, invitor) == false)
+    {
+        printCommandMessage(1, _client_socket, "Channel is Invite-only, Invitor is not operator of channel");
+        return;
+    }
+
+    if (_client_manager.isClientExistByNick(invited) == false) // invited client does not exist
+    {
+        printCommandMessage(1, _client_socket, "Invited client does not exist");
+        return;
+    }
+
+    if (_channel_manager.isClientInChannel(channel_name, invited)) // invited client is already in channel
+    {
+        printCommandMessage(1, _client_socket, "Invited client is already in channel");
+        return;
+    }
+
+    _channel_manager.addClientToChannel(channel_name, invited);
+    printCommandMessage(2, _client_socket, "Client " + invited + " added to channel " + channel_name);
 }
 
 void TopicCommand::execute()
 {
-    
+    printCommandMessage(2, _client_socket, "TOPIC " + _arg);
+
+    if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
+    {
+        printCommandMessage(1, _client_socket, "Not connected to server");
+        return;
+    }
+
+    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    {
+        printCommandMessage(1, _client_socket, "Not authenticated");
+        return;
+    }
+
+    size_t pos = _arg.find(' ');
+    std::string channel_name = "";
+    std::string topic = "";
+    std::string client_nick = _client_manager.getClientNicknameBySocket(_client_socket);
+
+    if (pos == std::string::npos)
+        channel_name = _arg;
+    else
+    {
+        channel_name = _arg.substr(0, pos);
+        topic = _arg.substr(pos + 1);
+    }
+
+    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
+    {
+        printCommandMessage(1, _client_socket, "Channel does not exist");
+        return;
+    }
+
+    if (_channel_manager.isClientInChannel(channel_name, client_nick) == false) // client is not in channel
+    {
+        printCommandMessage(1, _client_socket, "Client is not in channel");
+        return;
+    }
+
+    if (topic == "") // get topic
+    {
+        _server.sendMessageToClientByNick(client_nick, _channel_manager.getChannelTopic(channel_name));
+        printCommandMessage(2, _client_socket, "Topic printed");
+    }
+    else // set topic
+    {
+        // channel is Topic_limit, so oper can only change
+        if (_channel_manager.getChannelMode(channel_name, "T") && _channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false)
+        {
+            printCommandMessage(1, _client_socket, "Client is not operator of channel");
+            return;
+        }
+
+        _channel_manager.setChannelTopic(channel_name, topic);
+        printCommandMessage(2, _client_socket, "Topic set to " + topic);
+    }
 }
 
 void KickCommand::execute()
 {
-    
+    printCommandMessage(2, _client_socket, "KICK " + _arg);
+
+    if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
+    {
+        printCommandMessage(1, _client_socket, "Not connected to server");
+        return;
+    }
+
+    if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
+    {
+        printCommandMessage(1, _client_socket, "Not authenticated");
+        return;
+    }
+
+    size_t pos = _arg.find(' ');
+    std::string channel_name = "";
+    std::string kicked = "";
+    std::string client_nick = _client_manager.getClientNicknameBySocket(_client_socket);
+
+    if (pos == std::string::npos)
+    {
+        printCommandMessage(1, _client_socket, "Invalid number of arguments");
+        return;
+    }
+
+    channel_name = _arg.substr(0, pos);
+    kicked = _arg.substr(pos + 1);
+
+    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
+    {
+        printCommandMessage(1, _client_socket, "Channel does not exist");
+        return;
+    }
+
+    if (_channel_manager.isClientInChannel(channel_name, client_nick) == false) // client is not in channel
+    {
+        printCommandMessage(1, _client_socket, "Client is not in channel");
+        return;
+    }
+
+    // kick is only for operator
+    if (_channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false) // client is not operator of channel
+    {
+        printCommandMessage(1, _client_socket, "Client is not operator of channel");
+        return;
+    }
+
+    if (_channel_manager.isClientInChannel(channel_name, kicked) == false) // kicked client is not in channel
+    {
+        printCommandMessage(1, _client_socket, "Kicked client is not in channel");
+        return;
+    }
+
+    if (kicked == client_nick) // cannot kick yourself
+    {
+        printCommandMessage(1, _client_socket, "Cannot kick yourself");
+        return;
+    }
+
+    _channel_manager.deleteClientFromChannel(channel_name, kicked);
+    if (_channel_manager.isClientOperatorInChannel(channel_name, kicked))
+        _channel_manager.deleteOperFromChannel(channel_name, kicked);
+    printCommandMessage(2, _client_socket, "Client " + kicked + " kicked from channel " + channel_name);
 }

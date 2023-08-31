@@ -1,6 +1,6 @@
 NAME = ircserv
 
-CPPFLAGS = 
+CPPFLAGS = -Wall -Wextra -Werror
 CPP = c++
 
 SRCS =	srcs/main.cpp \
