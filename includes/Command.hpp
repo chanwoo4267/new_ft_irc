@@ -27,6 +27,13 @@ class Command
         virtual void execute() = 0;
 };
 
+class CapCommand : public Command
+{
+    public:
+        CapCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg){}
+        void execute();
+};
+
 class PassCommand : public Command
 {
     public:
@@ -87,6 +94,13 @@ class KickCommand : public Command
 {
     public:
         KickCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg){}
+        void execute();
+};
+
+class PingCommand : public Command
+{
+    public:
+        PingCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg){}
         void execute();
 };
 

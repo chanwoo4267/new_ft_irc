@@ -234,7 +234,7 @@ std::string ClientManager::getWriteBufferBySocket(int client_socket)
  * 
  * @param client_socket 확인할 client의 socket
  * 
- * @return CRLF로 끝나면 true, 아니면 false
+ * @return CRLF가 있음 true, 아니면 false
  * 
  * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
 */
@@ -242,8 +242,8 @@ bool ClientManager::isReadBufferEndWithCRLF(int client_socket)
 {
     Client& curr_client = getClientBySocket(client_socket);
     std::string read_buffer = curr_client.getReadBuffer();
-    int len = read_buffer.length();
-    if (len >= 2 && read_buffer[len - 2] == '\r' && read_buffer[len - 1] == '\n')
+
+    if (read_buffer.find("\r\n") != std::string::npos)
         return (true);
     return (false);
 }
@@ -284,6 +284,28 @@ std::string ClientManager::getClientNicknameBySocket(int client_socket)
     {
         if (it->getClientSocket() == client_socket)
             return (it->getNickname());
+    }
+    return ("");
+}
+
+std::string ClientManager::getClientUsernameBySocket(int client_socket)
+{
+    std::vector<Client>::iterator it = _client_list.begin();
+    for (; it != _client_list.end(); ++it)
+    {
+        if (it->getClientSocket() == client_socket)
+            return (it->getUsername());
+    }
+    return ("");
+}
+
+std::string ClientManager::getClientHostnameBySocket(int client_socket)
+{
+    std::vector<Client>::iterator it = _client_list.begin();
+    for (; it != _client_list.end(); ++it)
+    {
+        if (it->getClientSocket() == client_socket)
+            return (it->getHostname());
     }
     return ("");
 }
@@ -338,7 +360,7 @@ bool ClientManager::isClientAuthenticatedBySocket(int client_socket)
  * 
  * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
 */
-void ClientManager::setClientNamesBySocket(int client_socket, std::string username, std::string hostname, std::string realname, std::string servername)
+void ClientManager::setClientNamesBySocket(int client_socket, std::string username, std::string servername, std::string hostname, std::string realname)
 {
     Client& curr_client = getClientBySocket(client_socket);
     curr_client.setHostname(hostname);

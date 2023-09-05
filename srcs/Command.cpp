@@ -1,9 +1,13 @@
 #include "../includes/Command.hpp"
 
+void CapCommand::execute()
+{
+    if (_arg.find("JOIN") != std::string::npos)
+        _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 451 * JOIN :You have not registered");
+}
+
 void PassCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "PASS " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
         printCommandMessage(1, _client_socket, "Not connected to server");
@@ -22,8 +26,6 @@ void PassCommand::execute()
 
 void NickCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "NICK " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
         printCommandMessage(1, _client_socket, "Not connected to server");
@@ -49,13 +51,14 @@ void NickCommand::execute()
     }
 
     _client_manager.setClientNicknameBySocket(_client_socket, _arg);
-    printCommandMessage(2, _client_socket, "Nickname set");
+    std::string nick = _client_manager.getClientNicknameBySocket(_client_socket);
+    std::string username = _client_manager.getClientUsernameBySocket(_client_socket);
+    std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
+    _server.sendMessageToClientBySocket(_client_socket, ":" + nick + "!" + username + "@" + "127.0.0.1" + " NICK " + nick);
 }
 
 void UserCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "USER " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
         printCommandMessage(1, _client_socket, "Not connected to server");
@@ -81,8 +84,17 @@ void UserCommand::execute()
         return;
     }
 
-    _client_manager.setClientNamesBySocket(_client_socket, args[0], args[1], args[2], args[3]);
+    _client_manager.setClientNamesBySocket(_client_socket, args[0], args[1], args[2], args[3].substr(1)); // realname은 : 붙어있음
     printCommandMessage(2, _client_socket, "User registered");
+
+    // success message send
+    std::string nick = _client_manager.getClientNicknameBySocket(_client_socket);
+    std::string username = _client_manager.getClientUsernameBySocket(_client_socket);
+    std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
+    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + username + "@" + hostname);
+    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 002 " + nick + " :Your host is 127.0.0.1, running version 1.0");
+    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 003 " + nick + " :This server was created sometime");
+    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 004 " + nick + " :127.0.0.1 1.0 Channel modes +ntikl");
 }
 
 void PrivmsgCommand::execute()
@@ -168,8 +180,6 @@ void PrivmsgCommand::execute()
 */
 void JoinCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "JOIN " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
         printCommandMessage(1, _client_socket, "Not connected to server");
@@ -178,7 +188,7 @@ void JoinCommand::execute()
 
     if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
-        printCommandMessage(1, _client_socket, "Not authenticated");
+        _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 451 * JOIN :You have not registered");
         return;
     }
 
@@ -245,7 +255,6 @@ void ModeCommand::execute()
         printCommandMessage(1, _client_socket, "Not authenticated");
         return;
     }
-
 
     // parsing arguments
     size_t pos = _arg.find(' ');
@@ -570,4 +579,9 @@ void KickCommand::execute()
     if (_channel_manager.isClientOperatorInChannel(channel_name, kicked))
         _channel_manager.deleteOperFromChannel(channel_name, kicked);
     printCommandMessage(2, _client_socket, "Client " + kicked + " kicked from channel " + channel_name);
+}
+
+void PingCommand::execute()
+{
+    _server.sendMessageToClientBySocket(_client_socket, "PONG 127.0.0.1 :127.0.0.1");
 }

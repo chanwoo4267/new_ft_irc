@@ -20,5 +20,6 @@ void printServerMessage(int mode, std::string message);
 void printCommandMessage(int mode, int client_socket, std::string message);
 
 std::vector<std::string> splitString(std::string str, char delim);
+std::vector<std::string> splitStringWithCRLF(std::string str);
 
 #endif

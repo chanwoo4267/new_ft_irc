@@ -99,6 +99,9 @@ void Server::addPrintEvent(uintptr_t ident, std::string message)
 {
     _client_manager.setWriteBufferBySocket(ident, message);
     addEvent(_change_list, ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
+    //debug
+    printServerMessage(2, "client " + std::to_string(ident) + " <- " + message);
 }
 
 /**
@@ -120,6 +123,9 @@ void Server::runServer()
         if (new_events == -1)
             systemError("kevent() error", 1);
         _change_list.clear();
+
+        // if (_client_manager.isClientExistBySocket(5))
+        //     printServerMessage(1, "client 5 : " + _client_manager.getReadBufferBySocket(5));
 
         for (int i=0; i<new_events; ++i)
         {
@@ -230,6 +236,8 @@ Command* Server::createCommand(int client_socket, std::string command, std::stri
 {
     if (command == "pass")
         return new PassCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "cap")
+        return new CapCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "nick")
         return new NickCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "user")
@@ -246,55 +254,65 @@ Command* Server::createCommand(int client_socket, std::string command, std::stri
         return new TopicCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "kick")
         return new KickCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "ping")
+        return new PingCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else
         return NULL;
 }
 
 /**
  * @brief 주어진 Client의 readBuffer를 받아와 명령어를 분리하고, 이에 맞는 명령을 실행
- * 
+ *
  * @param client_socket 명령어를 실행할 client의 socket
- * 
+ *
  * @note
  * 명령어가 존재하지 않는 경우, 서버에 오류 메시지 출력
-*/
+ */
 void Server::parseAndExecuteCommand(int client_socket)
 {
-    std::vector<std::string>    args;
-    std::string                 read_buffer;
-    std::string                 command = "";
-    std::string                 argument = "";
-    size_t                      pos = 0;
+    std::vector<std::string> args;
+    std::string read_string;
+    std::string read_buffer;
+    std::string command = "";
+    std::string argument = "";
+    size_t pos = 0;
 
     // read from client buffer
-    read_buffer = _client_manager.getReadBufferBySocket(client_socket);
-    _client_manager.clearReadBufferBySocket(client_socket);
+    read_string = _client_manager.getReadBufferBySocket(client_socket);
 
-    read_buffer.erase(read_buffer.length() - 2); // remove '\r\n'
+    while (read_string.find("\r\n") != std::string::npos) // \r\n 이 없을때까지 명령 반복수행
+    {
+        read_buffer = read_string.substr(0, read_string.find("\r\n"));
+        read_string = read_string.substr(read_string.find("\r\n") + 2);
 
-    // parse command
-    if ((pos = read_buffer.find(' ')) != std::string::npos)
-    {
-        command = read_buffer.substr(0, pos);
-        argument = read_buffer.substr(pos + 1);
-    }
-    else
-        command = read_buffer;
+        // debug
+        printServerMessage(2, "client " + std::to_string(client_socket) + " -> " + read_buffer);
 
-    // command to lower case
-    for (std::string::iterator it=command.begin(); it!=command.end(); ++it)
-        *it = std::tolower(*it);
-    
-    Command* cmd = createCommand(client_socket, command, argument);
-    if (cmd)
-    {
-        cmd->execute();
-        delete cmd;
+        // parse command
+        if ((pos = read_buffer.find(' ')) != std::string::npos)
+        {
+            command = read_buffer.substr(0, pos);
+            argument = read_buffer.substr(pos + 1);
+        }
+        else
+            command = read_buffer;
+
+        // command to lower case
+        for (std::string::iterator it = command.begin(); it != command.end(); ++it)
+            *it = std::tolower(*it);
+
+        Command *cmd = createCommand(client_socket, command, argument);
+        if (cmd)
+        {
+            cmd->execute();
+            delete cmd;
+        }
     }
-    else
-    {
-        printServerMessage(1, "Unknown Command");
-    }
+
+    _client_manager.setReadBufferBySocket(client_socket, read_string);
+
+    // debug
+    // printServerMessage(2, "client " + std::to_string(client_socket) + " BUFFER : " + _client_manager.getReadBufferBySocket(client_socket));
 }
 
 /**
@@ -317,6 +335,21 @@ void Server::sendMessageToClientByNick(std::string nick, std::string message)
     {
         printServerMessage(1, "client " + nick + " does not exist");
     }
+}
+
+/**
+ * @brief 주어진 socket을 가진 client에게 message를 보낸다
+ * 
+ * @param socket 메시지를 보낼 client의 socket
+ * @param message 보낼 메시지
+ * 
+ * @note 해당 client가 없으면 아무일도 없음
+ * @note 보내줄 때 자동으로 \r\n을 붙여서 보내줌
+*/
+void Server::sendMessageToClientBySocket(int socket, std::string message)
+{
+    if (_client_manager.isClientExistBySocket(socket))
+        addPrintEvent(socket, message + "\r\n");
 }
 
 /**

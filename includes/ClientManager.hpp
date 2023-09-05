@@ -35,6 +35,8 @@ class ClientManager
 
         int                     getClientSocketByNick(std::string nickname);
         std::string             getClientNicknameBySocket(int client_socket);
+        std::string             getClientUsernameBySocket(int client_socket);
+        std::string             getClientHostnameBySocket(int client_socket);
 
         /* client buffer methods */
 
