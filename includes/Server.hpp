@@ -38,6 +38,8 @@ class Command;
 #define WHITE  "\033[0;37m"
 #define DEFAULT "\033[0m"
 
+#define MSG_NOSIGNAL 0
+
 class Server
 {
     private:

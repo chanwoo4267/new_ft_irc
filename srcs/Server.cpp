@@ -97,7 +97,7 @@ void Server::addEvent(std::vector<struct kevent>& change_list, uintptr_t ident, 
 */
 void Server::addPrintEvent(uintptr_t ident, std::string message)
 {
-    _client_manager.setWriteBufferBySocket(ident, message);
+    _client_manager.appendWriteBufferBySocket(ident, message);
     addEvent(_change_list, ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
     //debug
@@ -209,8 +209,14 @@ void Server::runServer()
                     }
                     else
                     {
-                        send(curr_event->ident, _client_manager.getWriteBufferBySocket(curr_event->ident).c_str(), _client_manager.getWriteBufferBySocket(curr_event->ident).length(), MSG_NOSIGNAL);
-                        _client_manager.clearWriteBufferBySocket(curr_event->ident);
+                        std::string read_string = _client_manager.getWriteBufferBySocket(curr_event->ident);
+                        while (read_string.find("\r\n") != std::string::npos)
+                        {
+                            std::string send_msg = read_string.substr(0, read_string.find("\r\n") + 2);
+                            read_string = read_string.substr(read_string.find("\r\n") + 2);
+                            send(curr_event->ident, send_msg.c_str(), send_msg.length(), MSG_NOSIGNAL);
+                        }
+                        _client_manager.setWriteBufferBySocket(curr_event->ident, read_string);
                         // write event가 끝났으므로, disable 및 delete 한다
                         addEvent(_change_list, curr_event->ident, EVFILT_WRITE, EV_DISABLE | EV_DELETE, 0, 0, NULL);
                     }
