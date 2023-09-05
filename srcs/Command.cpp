@@ -71,26 +71,23 @@ void UserCommand::execute()
         return;
     }
 
-    std::vector<std::string> args = splitString(_arg, ' ');
-    if (args.size() != 4) // invalid number of arguments
-    {
-        printCommandMessage(1, _client_socket, "Invalid number of arguments");
-        return;
-    }
+    size_t pos = _arg.find(' ');
+    std::string username = _arg.substr(0, pos);
+    _arg = _arg.substr(pos + 1);
 
-    if (args[0].empty() || args[1].empty() || args[2].empty() || args[3].empty()) // empty parameter argument
-    {
-        printCommandMessage(1, _client_socket, "Cannot have empty parameter");
-        return;
-    }
+    pos = _arg.find(' ');
+    std::string servername = _arg.substr(0, pos);
+    _arg = _arg.substr(pos + 1);
 
-    _client_manager.setClientNamesBySocket(_client_socket, args[0], args[1], args[2], args[3].substr(1)); // realname은 : 붙어있음
+    pos = _arg.find(' ');
+    std::string hostname = _arg.substr(0, pos);
+    _arg = _arg.substr(pos + 2); // hostname includes :
+
+    _client_manager.setClientNamesBySocket(_client_socket, username, hostname, _arg, servername);
     printCommandMessage(2, _client_socket, "User registered");
 
     // success message send
     std::string nick = _client_manager.getClientNicknameBySocket(_client_socket);
-    std::string username = _client_manager.getClientUsernameBySocket(_client_socket);
-    std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
     _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + username + "@" + hostname);
     _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 002 " + nick + " :Your host is 127.0.0.1, running version 1.0");
     _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 003 " + nick + " :This server was created sometime");
