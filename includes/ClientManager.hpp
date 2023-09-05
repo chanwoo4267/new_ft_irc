@@ -55,7 +55,8 @@ class ClientManager
         bool                    isClientExistBySocket(int client_socket);
         bool                    isClientExistByNick(std::string nickname);
         bool                    isClientAuthenticatedBySocket(int client_socket);
-        bool                    isClientReadyBySocket(int client_socket);   
+        bool                    isClientReadyBySocket(int client_socket);
+        bool                    isClientFirstConnectBySocket(int client_socket);
 };
 
 #endif

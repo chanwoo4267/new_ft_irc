@@ -385,3 +385,12 @@ bool ClientManager::isClientReadyBySocket(int client_socket)
         return (false);
     return (true);
 }
+
+/**
+ * @brief Client가 first connection sequence 중인지 확인
+*/
+bool ClientManager::isClientFirstConnectBySocket(int clinet_socket)
+{
+    Client& curr_client = getClientBySocket(clinet_socket);
+    return curr_client.getFirstConnect();
+}

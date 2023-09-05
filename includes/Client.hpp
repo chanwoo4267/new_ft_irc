@@ -13,6 +13,7 @@ class Client
         std::string     _client_write_buffer;
 
         bool            _authenticated;
+        bool            _first_connect;
         std::string     _username;
         std::string     _hostname;
         std::string     _realname;
@@ -33,6 +34,7 @@ class Client
         std::string     getRealname() const;
         std::string     getServername() const;
         std::string     getNickname() const;
+        bool            getFirstConnect() const;
 
         /* set methods */
         void            setReadBuffer(std::string read_buffer);

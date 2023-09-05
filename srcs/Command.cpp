@@ -47,6 +47,11 @@ void NickCommand::execute()
     if (_client_manager.isClientExistByNick(_arg)) // duplicated nickname
     {
         printCommandMessage(1, _client_socket, "Nickname already in use");
+        if (_client_manager.isClientFirstConnectBySocket(_client_socket)) // first connect, but duplicated nick
+        {
+            _client_manager.setClientNicknameBySocket(_client_socket, _arg + "_");
+            _server.sendMessageToClientBySocket(_client_socket, ":" + _arg + "_" + "!@" + "127.0.0.1" + " NICK " + _arg + "_");
+        }
         return;
     }
 
@@ -54,7 +59,9 @@ void NickCommand::execute()
     std::string nick = _client_manager.getClientNicknameBySocket(_client_socket);
     std::string username = _client_manager.getClientUsernameBySocket(_client_socket);
     std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
-    _server.sendMessageToClientBySocket(_client_socket, ":" + nick + "!" + username + "@" + "127.0.0.1" + " NICK " + nick);
+    if (hostname.empty())
+        hostname = "127.0.0.1";
+    _server.sendMessageToClientBySocket(_client_socket, ":" + nick + "!" + username + "@" + hostname + " NICK " + nick);
 }
 
 void UserCommand::execute()

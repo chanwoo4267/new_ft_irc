@@ -9,6 +9,7 @@ Client::Client(int client_socket)
 {
     _client_socket = client_socket;
     _authenticated = false;
+    _first_connect = true;
     _client_read_buffer = "";
     _client_write_buffer = "";
     _username = "";
@@ -61,6 +62,11 @@ std::string Client::getServername() const
 std::string Client::getNickname() const
 {
     return (_nickname);
+}
+
+bool Client::getFirstConnect() const
+{
+    return (_first_connect);
 }
 
 void Client::setReadBuffer(std::string str)
