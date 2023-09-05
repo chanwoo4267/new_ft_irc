@@ -246,8 +246,6 @@ void JoinCommand::execute()
 
 void ModeCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "MODE " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
         printCommandMessage(1, _client_socket, "Not connected to server");
@@ -282,15 +280,15 @@ void ModeCommand::execute()
     }
     // parsing end
 
-    if (_channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false) // client is not operator of channel
-    {
-        printCommandMessage(1, _client_socket, "Client is not operator of channel");
-        return;
-    }
-
     if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
     {
         printCommandMessage(1, _client_socket, "Channel does not exist");
+        return;
+    }
+
+    if (_channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false) // client is not operator of channel
+    {
+        printCommandMessage(1, _client_socket, "Client is not operator of channel");
         return;
     }
 

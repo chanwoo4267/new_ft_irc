@@ -1,7 +1,7 @@
 #include "../includes/Utility.hpp"
 
 /**
- * @brief 메시지 출력
+ * @brief 메시지 출력, 줄바꿈 자동
  * 
  * @param mode 메시지 모드
  * @param message 출력할 메시지
@@ -34,7 +34,7 @@ void printServerMessage(int mode, std::string message)
 }
 
 /**
- * @brief 메시지 출력
+ * @brief 메시지 출력, 줄바꿈 자동
  * 
  * @param mode 메시지 모드
  * @param client_socket 클라이언트 소켓
