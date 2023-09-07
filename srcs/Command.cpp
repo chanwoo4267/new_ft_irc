@@ -3,7 +3,7 @@
 void CapCommand::execute()
 {
     if (_arg.find("JOIN") != std::string::npos)
-        _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 451 * JOIN :You have not registered");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 451 * JOIN :You have not registered");
 }
 
 void PassCommand::execute()
@@ -95,10 +95,10 @@ void UserCommand::execute()
 
     // success message send
     std::string nick = _client_manager.getClientNicknameBySocket(_client_socket);
-    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + username + "@" + hostname);
-    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 002 " + nick + " :Your host is 127.0.0.1, running version 1.0");
-    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 003 " + nick + " :This server was created sometime");
-    _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 004 " + nick + " :127.0.0.1 1.0 Channel modes +ntikl");
+    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + username + "@" + hostname);
+    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 002 " + nick + " :Your host is " + hostname + " running version 1.0");
+    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 003 " + nick + " :This server was created sometime");
+    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 004 " + nick + " :" + hostname + " 1.0 Channel modes +ntikl");
 }
 
 void PrivmsgCommand::execute()
@@ -192,10 +192,11 @@ void JoinCommand::execute()
 
     if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
     {
-        _server.sendMessageToClientBySocket(_client_socket, ":127.0.0.1 451 * JOIN :You have not registered");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 451 * JOIN :You have not registered");
         return;
     }
 
+    /* channel_name : 채널 이름 , password : 채널 비밀번호, client_nick : JOIN한 유저의 닉네임 */
     size_t pos = _arg.find(' ');
     std::string channel_name = "";
     std::string password = "";
@@ -210,37 +211,50 @@ void JoinCommand::execute()
 
     if (_channel_manager.isChannelExist(channel_name)) // channel already exist
     {
-        if (_channel_manager.isClientInChannel(channel_name, client_nick)) // client already in channel
-        {
-            printCommandMessage(1, _client_socket, "Client already in channel");
-            return;
-        }
+        // 이미 존재하는 채널에 다시 JOIN 하는건 irssi 측에서 걸러줌
 
-        if (_channel_manager.getChannelMode(channel_name, "I") == true)
+        // channel is invite-only, and joiner is not invited
+        if (_channel_manager.getChannelMode(channel_name, "I") == true && _client_manager.isClientInvitedBySocket(_client_socket, channel_name) == false)
         {
-            printCommandMessage(1, _client_socket, "Channel is invite-only");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 473 " + client_nick + " " + channel_name + " :Cannot join channel (+i)");
             return;
         }
 
         if (_channel_manager.getChannelMode(channel_name, "K") == true && _channel_manager.getChannelPassword(channel_name) != password)
         {
-            printCommandMessage(1, _client_socket, "Password incorrect");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 475 " + client_nick + " " + channel_name + " :Cannot join channel (+k)");
             return;
         }
         
         if (_channel_manager.getChannelMode(channel_name, "L") == true && _channel_manager.getChannelMemberList(channel_name).size() >= _channel_manager.getChannelUserLimit(channel_name))
         {
-            printCommandMessage(1, _client_socket, "Channel user limit reached");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 471 " + client_nick + " " + channel_name + " :Cannot join channel (+l)");
             return;
         }
 
         _channel_manager.addClientToChannel(channel_name, client_nick);
-        printCommandMessage(2, _client_socket, "Channel " + channel_name + " joined");
+        // 성공
+
+        // announce joining to all users
+        std::string formatted_user = ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket);
+        _server.sendMessageToChannel(client_nick, channel_name, formatted_user + " JOIN " + channel_name);
+
+        // send user list to joiner
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 353 " + client_nick + " = " + channel_name + " :"); // need to fix : 마지막에 유저 리스트 추가
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 366 " + client_nick + " " + channel_name + " :End of /NAMES list");
     }
     else // channel does not exist
     {
         _channel_manager.addChannel(channel_name, client_nick);
-        printCommandMessage(2, _client_socket, "Channel " + channel_name + " created");
+        // 성공
+
+        // announce joining to all users
+        std::string formatted_user = ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket);
+        _server.sendMessageToChannel(client_nick, channel_name, formatted_user + " JOIN " + channel_name);
+
+        // send user list to joiner
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 353 " + client_nick + " = " + channel_name + " :@" + client_nick);
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 366 " + client_nick + " " + channel_name + " :End of /NAMES list");
     }
 }
 
@@ -264,6 +278,7 @@ void ModeCommand::execute()
     std::string mode = "";
     std::string value = "";
     std::string client_nick = _client_manager.getClientNicknameBySocket(_client_socket);
+
     if (pos == std::string::npos)
     {
         printCommandMessage(1, _client_socket, "Invalid number of arguments");
@@ -280,7 +295,7 @@ void ModeCommand::execute()
     }
     // parsing end
 
-    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
+    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist // mode user +i 도 여기서 걸러주게됨
     {
         printCommandMessage(1, _client_socket, "Channel does not exist");
         return;
@@ -585,5 +600,6 @@ void KickCommand::execute()
 
 void PingCommand::execute()
 {
-    _server.sendMessageToClientBySocket(_client_socket, "PONG 127.0.0.1 :127.0.0.1");
+    std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
+    _server.sendMessageToClientBySocket(_client_socket, "PONG " + hostname + " :" + hostname);
 }

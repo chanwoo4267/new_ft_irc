@@ -394,3 +394,12 @@ bool ClientManager::isClientFirstConnectBySocket(int clinet_socket)
     Client& curr_client = getClientBySocket(clinet_socket);
     return curr_client.getFirstConnect();
 }
+
+/**
+ * @brief Client가 channel에 초대됬는지 확인
+*/
+bool ClientManager::isClientInvitedBySocket(int client_socket, std::string channel)
+{
+    Client& curr_client = getClientBySocket(client_socket);
+    return curr_client.isInvited(channel);
+}

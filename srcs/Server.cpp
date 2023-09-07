@@ -359,7 +359,7 @@ void Server::sendMessageToClientBySocket(int socket, std::string message)
 }
 
 /**
- * @brief 주어진 channel에게 message를 보낸다
+ * @brief 주어진 channel에게 message를 자신을 포함한 모든 client에게 보낸다
  * 
  * @param nick 메시지를 보낸 client의 nick
  * @param channel 메시지를 보낼 channel
@@ -372,8 +372,7 @@ void Server::sendMessageToChannel(std::string nick, std::string channel, std::st
     std::vector<std::string> member_list = _channel_manager.getChannelMemberList(channel);
     for (std::vector<std::string>::iterator it = member_list.begin(); it != member_list.end(); ++it)
     {
-        if (*it != nick)
-            sendMessageToClientByNick(*it, message);
+        sendMessageToClientByNick(*it, message);
     }
 }
 

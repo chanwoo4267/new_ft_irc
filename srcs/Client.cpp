@@ -129,3 +129,42 @@ void Client::clearWriteBuffer()
     _client_write_buffer.clear();
 }
 
+/**
+ * @brief invite_list에 채널이 있는지 확인한다
+*/
+bool Client::isInvited(std::string channel)
+{
+    for (std::vector<std::string>::iterator it = _invited_list.begin(); it != _invited_list.end(); it++)
+    {
+        if (*it == channel)
+            return (true);
+    }
+    return (false);
+}
+
+/**
+ * @brief invite_list에 채널을 추가한다
+*/
+void Client::addInvite(std::string channel)
+{
+    _invited_list.push_back(channel);
+}
+
+/**
+ * @brief invite_list에서 채널을 제거한다
+ * 
+ * @param channel 제거할 채널
+ * 
+ * @note 채널이 존재하지 않으면 아무 일도 일어나지 않는다
+*/
+void Client::removeInvite(std::string channel)
+{
+    for (std::vector<std::string>::iterator it = _invited_list.begin(); it != _invited_list.end(); it++)
+    {
+        if (*it == channel)
+        {
+            _invited_list.erase(it);
+            return ;
+        }
+    }
+}

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 class Client
 {
@@ -19,6 +20,8 @@ class Client
         std::string     _realname;
         std::string     _servername;
         std::string     _nickname;
+
+        std::vector<std::string>    _invited_list;
     
     public:
 
@@ -51,6 +54,11 @@ class Client
         void            appendWriteBuffer(std::string str);
         void            clearReadBuffer();
         void            clearWriteBuffer();
+
+        /* invite */
+        void            addInvite(std::string channel);
+        void            removeInvite(std::string channel);
+        bool            isInvited(std::string channel);
 };
 
 #endif

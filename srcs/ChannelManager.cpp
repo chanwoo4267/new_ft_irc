@@ -1,7 +1,7 @@
 #include "../includes/ChannelManager.hpp"
 
 /**
- * @brief 채널 목록에 채널 추가
+ * @brief 채널 목록에 채널 추가, 주어진 닉을 유저 및 오퍼레이터로 추가
  * 
  * @param channel_name 추가할 채널의 이름
  * @param oper_nick 추가할 채널의 오퍼레이터 닉네임
