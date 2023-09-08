@@ -78,6 +78,7 @@ class Server
         void                        sendMessageToClientByNick(std::string nick, std::string message);
         void                        sendMessageToClientBySocket(int socket, std::string message);
         void                        sendMessageToChannel(std::string nick, std::string channel, std::string message);
+        void                        sendMessageToChannelExceptMe(std::string nick, std::string channel, std::string message);
 
         std::string                 getPassword() const;
 };

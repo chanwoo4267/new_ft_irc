@@ -376,6 +376,19 @@ void Server::sendMessageToChannel(std::string nick, std::string channel, std::st
     }
 }
 
+/**
+ * @brief 주어진 channel에게 message를 자신을 제외한 모든 client에게 보낸다
+*/
+void Server::sendMessageToChannelExceptMe(std::string nick, std::string channel, std::string message)
+{
+    std::vector<std::string> member_list = _channel_manager.getChannelMemberList(channel);
+    for (std::vector<std::string>::iterator it = member_list.begin(); it != member_list.end(); ++it)
+    {
+        if (*it != nick)
+            sendMessageToClientByNick(*it, message);
+    }
+}
+
 std::string Server::getPassword() const
 {
     return _server_password;

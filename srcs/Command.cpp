@@ -103,8 +103,6 @@ void UserCommand::execute()
 
 void PrivmsgCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "PRIVMSG " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
     {
         printCommandMessage(1, _client_socket, "Not connected to server");
@@ -132,35 +130,31 @@ void PrivmsgCommand::execute()
     {
         if (_channel_manager.isChannelExist(target) == false) // channel does not exist
         {
-            printCommandMessage(1, _client_socket, "Channel does not exist");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 401 " + sender_nick + " " + target + " :No such channel");
             return;
         }
 
         if (_channel_manager.isClientInChannel(target, sender_nick) == false) // client is not in channel
         {
-            printCommandMessage(1, _client_socket, "Client is not in channel");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 404 " + sender_nick + " " + target + " :Cannot send to channel");
             return;
         }
 
-        _server.sendMessageToChannel(sender_nick, target, sender_nick + " -> " + message);
-        printCommandMessage(2, _client_socket, "Message sent");
+        // 입력된 message에 : 이 포함되므로 여기서는 따로 추가해주지 않는다
+        _server.sendMessageToChannelExceptMe(sender_nick, target, ":" + sender_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " PRIVMSG " + target + " " + message);
     }
     else // private message
     {
         if (_client_manager.isClientExistByNick(target) == false) // target client does not exist
         {
             printCommandMessage(1, _client_socket, "Client does not exist");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 401 " + sender_nick + " " + target + " :No such nick");
             return;
         }
 
-        if (target == sender_nick) // cannot send message to yourself
-        {
-            printCommandMessage(1, _client_socket, "Cannot send message to yourself");
-            return;
-        }
-
-        _server.sendMessageToClientByNick(target, sender_nick + " -> " + message);
-        printCommandMessage(2, _client_socket, "Message sent");
+        // 자신에게 메시지를 보내도 상관없음
+        // 입력된 message에 : 이 포함되므로 여기서는 따로 추가해주지 않는다
+        _server.sendMessageToClientByNick(target, ":" + sender_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " PRIVMSG " + target + " " + message);
     }
 }
 
