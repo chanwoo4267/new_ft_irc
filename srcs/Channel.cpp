@@ -150,6 +150,19 @@ std::vector<std::string> Channel::getChannelMemberList() const
     return (_channel_member_list);
 }
 
+std::string Channel::getChannelMemberListString() const
+{
+    std::string member_list_string = "";
+    std::vector<std::string>::const_iterator it = _channel_member_list.begin();
+    for (; it != _channel_member_list.end(); ++it)
+    {
+        member_list_string += *it;
+        if (it + 1 != _channel_member_list.end())
+            member_list_string += " ";
+    }
+    return (member_list_string);
+}
+
 void Channel::setChannelName(std::string channel_name)
 {
     _channel_name = channel_name;

@@ -233,20 +233,18 @@ void JoinCommand::execute()
         }
 
         _channel_manager.addClientToChannel(channel_name, client_nick);
-        // 성공
 
         // announce joining to all users
         std::string formatted_user = ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket);
         _server.sendMessageToChannel(client_nick, channel_name, formatted_user + " JOIN " + channel_name);
 
         // send user list to joiner
-        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 353 " + client_nick + " = " + channel_name + " :"); // need to fix : 마지막에 유저 리스트 추가
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 353 " + client_nick + " = " + channel_name + " :" + _channel_manager.getChannelMemberListString(channel_name));
         _server.sendMessageToClientBySocket(_client_socket, ":irc.local 366 " + client_nick + " " + channel_name + " :End of /NAMES list");
     }
     else // channel does not exist
     {
         _channel_manager.addChannel(channel_name, client_nick);
-        // 성공
 
         // announce joining to all users
         std::string formatted_user = ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket);

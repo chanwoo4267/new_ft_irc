@@ -177,6 +177,12 @@ std::vector<std::string> ChannelManager::getChannelMemberList(std::string channe
     return channel.getChannelMemberList();
 }
 
+std::string ChannelManager::getChannelMemberListString(std::string channel_name)
+{
+    Channel& channel = getChannel(channel_name);
+    return channel.getChannelMemberListString();
+}
+
 /**
  * @brief 주어진 채널의 모드 가져오기
  * 

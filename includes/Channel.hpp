@@ -40,6 +40,7 @@ class Channel
     
             /* get methods */
             std::vector<std::string>    getChannelMemberList() const;
+            std::string                 getChannelMemberListString() const;
             std::string                 getChannelName() const;
             std::string                 getChannelTopic() const;
             std::string                 getChannelPassword() const;

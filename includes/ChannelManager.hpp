@@ -29,6 +29,7 @@ class ChannelManager
         bool                        isClientOperatorInChannel(std::string channel_name, std::string nickname);
 
         std::vector<std::string>    getChannelMemberList(std::string channel_name);
+        std::string                 getChannelMemberListString(std::string channel_name);
         bool                        getChannelMode(std::string channel_name, std::string mode);
         std::string                 getChannelPassword(std::string channel_name);
         unsigned long               getChannelUserLimit(std::string channel_name);
