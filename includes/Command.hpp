@@ -104,4 +104,11 @@ class PingCommand : public Command
         void execute();
 };
 
+class PongCommand : public Command
+{
+    public:
+        PongCommand(int client_socket, Server& server, ClientManager& cm, ChannelManager& chm, std::string arg) : Command(client_socket, server, cm, chm, arg){}
+        void execute();
+};
+
 #endif

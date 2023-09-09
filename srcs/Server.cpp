@@ -260,7 +260,9 @@ Command* Server::createCommand(int client_socket, std::string command, std::stri
         return new TopicCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "kick")
         return new KickCommand(client_socket, *this, _client_manager, _channel_manager, arg);
-    else if (command == "ping")
+    else if (command == "ping") // if client send PING
+        return new PongCommand(client_socket, *this, _client_manager, _channel_manager, arg);
+    else if (command == "refresh")
         return new PingCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else
         return NULL;
@@ -334,12 +336,9 @@ void Server::sendMessageToClientByNick(std::string nick, std::string message)
 {
     if (_client_manager.isClientExistByNick(nick))
     {
-        int client_socket = _client_manager.getClientSocketByNick(nick);
-        addPrintEvent(client_socket, message + "\n"); // 출력 메시지 가독성을 위해 개행 추가
-    }
-    else
-    {
-        printServerMessage(1, "client " + nick + " does not exist");
+        int socket = _client_manager.getClientSocketByNick(nick);
+        addPrintEvent(socket, message + "\r\n"); // 출력 메시지 가독성을 위해 개행 추가
+        addPrintEvent(socket, "PING irc.local :irc.local\r\n");
     }
 }
 
@@ -355,7 +354,10 @@ void Server::sendMessageToClientByNick(std::string nick, std::string message)
 void Server::sendMessageToClientBySocket(int socket, std::string message)
 {
     if (_client_manager.isClientExistBySocket(socket))
+    {
         addPrintEvent(socket, message + "\r\n");
+        addPrintEvent(socket, "PING irc.local :irc.local\r\n");
+    }
 }
 
 /**

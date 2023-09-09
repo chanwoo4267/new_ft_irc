@@ -590,8 +590,20 @@ void KickCommand::execute()
     printCommandMessage(2, _client_socket, "Client " + kicked + " kicked from channel " + channel_name);
 }
 
+/**
+ * @brief send PING to client
+*/
 void PingCommand::execute()
 {
     std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
-    _server.sendMessageToClientBySocket(_client_socket, "PONG " + hostname + " :" + hostname);
+    _server.sendMessageToClientBySocket(_client_socket, "PING :irc.local");
+}
+
+/**
+ * @brief send PONG to client
+*/
+void PongCommand::execute()
+{
+    std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
+    _server.sendMessageToClientBySocket(_client_socket, "PONG irc.local :irc.local");
 }
