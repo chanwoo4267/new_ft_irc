@@ -287,46 +287,56 @@ void ModeCommand::execute()
     }
     // parsing end
 
-    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist // mode user +i 도 여기서 걸러주게됨
-    {
-        printCommandMessage(1, _client_socket, "Channel does not exist");
+    if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist, or [mode user +i] 도 여기서 걸러주게됨
         return;
-    }
 
     if (_channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false) // client is not operator of channel
     {
-        printCommandMessage(1, _client_socket, "Client is not operator of channel");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 482 " + client_nick + " " + channel_name + " :You're not channel operator");
         return;
     }
 
-    if (mode.length() != 2 || (mode[0] != '+' && mode[0] != '-')) // invalid mode input
+    if (mode[0] != '+' && mode[0] != '-')
     {
-        printCommandMessage(1, _client_socket, "Invalid mode");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 502 " + client_nick + " :Can't view modes for other users");
+        return;
+    }
+
+    if (mode.length() != 2 || (mode[1] != 'i' && mode[1] != 't' && mode[1] != 'o' && mode[1] != 'k' && mode[1] != 'l')) // invalid mode input
+    {
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 472 " + client_nick + " :is not a recognised channel mode.");
         return;
     }
 
     if (mode[1] == 'i' || mode[1] == 'I')
+    {
         _channel_manager.setChannelMode(channel_name, "I", mode[0] == '+');
+        _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :");
+    }
     else if (mode[1] == 't' || mode[1] == 'T')
+    {
         _channel_manager.setChannelMode(channel_name, "T", mode[0] == '+');
+        _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :");
+    }
     else if (mode[1] == 'k' || mode[1] == 'K')
     {
         if (mode[0] == '+') // set channel password
         {
             if (value == "") // no password input
             {
-                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 696 " + client_nick + " MODE k * :You must specify a parameter for the key mode. Syntax: <key>.");
                 return;
             }
             _channel_manager.setChannelMode(channel_name, "K", true);
             _channel_manager.setChannelPassword(channel_name, value);
-            printCommandMessage(2, _client_socket, "Channel password set to " + value);
+            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :" + value);
         }
         else // remove channel password
         {
+            std::string temp_pw = _channel_manager.getChannelPassword(channel_name);
             _channel_manager.setChannelMode(channel_name, "K", false);
             _channel_manager.setChannelPassword(channel_name, "");
-            printCommandMessage(2, _client_socket, "Channel password removed");
+            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :" + temp_pw);
         }
     }
     else if (mode[1] == 'l' || mode[1] == 'L')
@@ -335,18 +345,18 @@ void ModeCommand::execute()
         {
             if (value == "")
             {
-                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 697 " + client_nick + " MODE l * :You must specify a parameter for the limit mode. Syntax: <limit>.");
                 return;
             }
             _channel_manager.setChannelMode(channel_name, "L", true);
             _channel_manager.setChannelUserLimit(channel_name, atoi(value.c_str()));
-            printCommandMessage(2, _client_socket, "Channel user limit set to " + value);
+            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :" + value);
         }
         else
         {
             _channel_manager.setChannelMode(channel_name, "L", false);
             _channel_manager.setChannelUserLimit(channel_name, 0);
-            printCommandMessage(2, _client_socket, "Channel user limit removed");
+            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :");
         }
     }
     else if (mode[1] == 'o' || mode[1] == 'O')
@@ -355,47 +365,36 @@ void ModeCommand::execute()
         {
             if (value == "")
             {
-                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 698 " + client_nick + " MODE o * :You must specify a parameter for the operator mode. Syntax: <nick>.");
                 return;
             }
 
             if (_channel_manager.isClientOperatorInChannel(channel_name, value)) // client is already operator of channel
-            {
-                printCommandMessage(1, _client_socket, "Client is already operator of channel");
                 return;
-            }
 
             _channel_manager.addOperToChannel(channel_name, value);
-            printCommandMessage(2, _client_socket, "Client " + value + " added to channel operator list");
+            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :" + value);
         }
         else // remove oper privilege
         {
             if (value == "")
             {
-                printCommandMessage(1, _client_socket, "Invalid number of arguments");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 698 " + client_nick + " MODE o * :You must specify a parameter for the operator mode. Syntax: <nick>.");
                 return;
             }
 
             if (_channel_manager.isClientOperatorInChannel(channel_name, value) == false) // client is not operator of channel
-            {
-                printCommandMessage(1, _client_socket, "Client is not operator of channel");
                 return;
-            }
 
-            if (value == client_nick) // cannot remove yourself from operator list
+            if (value == client_nick) // cannot remove yourself from operator list, need to check
             {
                 printCommandMessage(1, _client_socket, "Cannot remove yourself from operator list");
                 return;
             }
 
             _channel_manager.deleteOperFromChannel(channel_name, value);
-            printCommandMessage(2, _client_socket, "Client " + value + " removed from channel operator list");
+            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :" + value);
         }
-    }
-    else
-    {
-        printCommandMessage(1, _client_socket, "Invalid mode");
-        return;
     }
 }
 
