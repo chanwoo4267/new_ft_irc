@@ -404,8 +404,20 @@ bool ClientManager::isClientInvitedBySocket(int client_socket, std::string chann
     return curr_client.isInvited(channel);
 }
 
+/**
+ * @brief Client가 처음 접속한 상태인지 저장하는 flag를 주어진 값으로 수정
+*/
 void ClientManager::setClientFirstConnectBySocket(int client_socket, bool first_connect)
 {
     Client& curr_client = getClientBySocket(client_socket);
     curr_client.setFirstConnect(first_connect);
+}
+
+/**
+ * @brief Client를 channel에 초대
+*/
+void ClientManager::inviteClientToChannelByNick(std::string nickname, std::string channel)
+{
+    Client& curr_client = getClientByNick(nickname);
+    curr_client.addInvite(channel);
 }

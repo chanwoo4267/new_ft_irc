@@ -59,6 +59,10 @@ class ClientManager
         bool                    isClientReadyBySocket(int client_socket);
         bool                    isClientFirstConnectBySocket(int client_socket);
         bool                    isClientInvitedBySocket(int client_socket, std::string channel);
+
+        /* invite methods */
+
+        void                    inviteClientToChannelByNick(std::string nickname, std::string channel);
 };
 
 #endif

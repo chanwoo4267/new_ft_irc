@@ -407,66 +407,58 @@ void ModeCommand::execute()
 
 void InviteCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "INVITE " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
-    {
-        printCommandMessage(1, _client_socket, "Not connected to server");
         return;
-    }
 
     if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
-    {
-        printCommandMessage(1, _client_socket, "Not authenticated");
         return;
-    }
 
     size_t pos = _arg.find(' ');
     std::string invited = "";
     std::string channel_name = "";
     std::string invitor = _client_manager.getClientNicknameBySocket(_client_socket);
 
-    if (pos == std::string::npos)
-    {
-        printCommandMessage(1, _client_socket, "Invalid number of arguments");
+    if (pos == std::string::npos) // invalid input
         return;
-    }
+    
     invited = _arg.substr(0, pos);
     channel_name = _arg.substr(pos + 1);
 
+
     if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
     {
-        printCommandMessage(1, _client_socket, "Channel does not exist");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 403 " + invitor + " " + channel_name + " :No such channel");
         return;
     }
 
     if (_channel_manager.isClientInChannel(channel_name, invitor) == false) // invitor is not in channel
     {
-        printCommandMessage(1, _client_socket, "Invitor is not in channel");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 442 " + invitor + " " + channel_name + " :You're not on that channel!");
         return;
     }
 
-    // channel is invite-only, then only operator can invite
-    if (_channel_manager.getChannelMode(channel_name, "I") && _channel_manager.isClientOperatorInChannel(channel_name, invitor) == false)
+    if (_channel_manager.isClientOperatorInChannel(channel_name, invitor) == false) // invitor is not operator of channel
     {
-        printCommandMessage(1, _client_socket, "Channel is Invite-only, Invitor is not operator of channel");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 482 " + invitor + " " + channel_name + " :You must be a channel operator");
         return;
     }
 
     if (_client_manager.isClientExistByNick(invited) == false) // invited client does not exist
     {
-        printCommandMessage(1, _client_socket, "Invited client does not exist");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 401 " + invitor + " " + invited + " :No such nick");
         return;
     }
 
-    if (_channel_manager.isClientInChannel(channel_name, invited)) // invited client is already in channel
+    if (_channel_manager.isClientInChannel(channel_name, invited) == true) // invited is already in channel
     {
-        printCommandMessage(1, _client_socket, "Invited client is already in channel");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 443 " + invitor + " " + invited + " " + channel_name + " :is already on channel");
         return;
     }
 
-    _channel_manager.addClientToChannel(channel_name, invited);
-    printCommandMessage(2, _client_socket, "Client " + invited + " added to channel " + channel_name);
+    // add invited list to client
+    _client_manager.inviteClientToChannelByNick(invited, channel_name);
+    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 341 " + invitor + " " + invited + " :" + channel_name);
+    _server.sendMessageToClientByNick(invited, ":" + invitor + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " INVITE " + invited + " :" + channel_name);
 }
 
 void TopicCommand::execute()
