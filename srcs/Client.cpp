@@ -109,6 +109,11 @@ void Client::setNickname(std::string nickname)
     _nickname = nickname;
 }
 
+void Client::setFirstConnect(bool first_connect)
+{
+    _first_connect = first_connect;
+}
+
 void Client::appendReadBuffer(std::string str)
 {
     _client_read_buffer += str;

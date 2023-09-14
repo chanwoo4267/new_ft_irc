@@ -354,7 +354,7 @@ bool ClientManager::isClientAuthenticatedBySocket(int client_socket)
 }
 
 /**
- * @brief 특정 socket을 가진 client의 username, hostname, realname, servername을 설정
+ * @brief 특정 socket을 가진 client의 username, servername, hostname, realname을 설정
  * 
  * @param client_socket 설정할 client의 socket
  * 
@@ -402,4 +402,10 @@ bool ClientManager::isClientInvitedBySocket(int client_socket, std::string chann
 {
     Client& curr_client = getClientBySocket(client_socket);
     return curr_client.isInvited(channel);
+}
+
+void ClientManager::setClientFirstConnectBySocket(int client_socket, bool first_connect)
+{
+    Client& curr_client = getClientBySocket(client_socket);
+    curr_client.setFirstConnect(first_connect);
 }

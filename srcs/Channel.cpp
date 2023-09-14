@@ -150,12 +150,19 @@ std::vector<std::string> Channel::getChannelMemberList() const
     return (_channel_member_list);
 }
 
+/**
+ * @brief 채널의 멤버목록을 문자열로 반환
+ * 
+ * @note 운영자일 경우 앞에 @를 추가, 마지막 멤버에서 공백을 추가하지 않는다
+*/
 std::string Channel::getChannelMemberListString() const
 {
     std::string member_list_string = "";
     std::vector<std::string>::const_iterator it = _channel_member_list.begin();
     for (; it != _channel_member_list.end(); ++it)
     {
+        if (find(_channel_operator_list.begin(), _channel_operator_list.end(), *it) != _channel_operator_list.end())
+            member_list_string += "@";
         member_list_string += *it;
         if (it + 1 != _channel_member_list.end())
             member_list_string += " ";

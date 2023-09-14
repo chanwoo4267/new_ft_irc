@@ -48,6 +48,7 @@ class Client
         void            setRealname(std::string realname);
         void            setServername(std::string servername);
         void            setNickname(std::string nickname);
+        void            setFirstConnect(bool first_connect);
 
         /* buffer */
         void            appendReadBuffer(std::string str);

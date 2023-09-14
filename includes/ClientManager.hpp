@@ -30,6 +30,7 @@ class ClientManager
         void                    setClientNicknameBySocket(int client_socket, std::string nickname);
         void                    setClientAuthenticatedBySocket(int client_socket, bool authenticated);
         void                    setClientNamesBySocket(int client_socket, std::string username, std::string hostname, std::string realname, std::string servername);
+        void                    setClientFirstConnectBySocket(int client_socket, bool first_connect);
 
         /* get methods */
 

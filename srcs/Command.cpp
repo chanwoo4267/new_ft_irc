@@ -40,28 +40,29 @@ void NickCommand::execute()
 
     if (_arg.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789[]\\`_^{|}-") != std::string::npos) // invalid nickname
     {
-        printCommandMessage(1, _client_socket, "Invalid nickname");
         return;
     }
 
     if (_client_manager.isClientExistByNick(_arg)) // duplicated nickname
     {
-        printCommandMessage(1, _client_socket, "Nickname already in use");
         if (_client_manager.isClientFirstConnectBySocket(_client_socket)) // first connect, but duplicated nick
         {
-            _client_manager.setClientNicknameBySocket(_client_socket, _arg + "_");
-            _server.sendMessageToClientBySocket(_client_socket, ":" + _arg + "_" + "!@" + "127.0.0.1" + " NICK " + _arg + "_");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 433 * " + _arg + " :Nickname is already in use.");
+            while (_client_manager.isClientExistByNick(_arg))
+                _arg += "_";
+            _client_manager.setClientNicknameBySocket(_client_socket, _arg);
+            _server.sendMessageToClientBySocket(_client_socket, ":" + _arg + "!@" + "127.0.0.1" + " NICK :" + _arg); // username 없음
         }
         return;
     }
 
-    _client_manager.setClientNicknameBySocket(_client_socket, _arg);
     std::string nick = _client_manager.getClientNicknameBySocket(_client_socket);
+    _client_manager.setClientNicknameBySocket(_client_socket, _arg);
     std::string username = _client_manager.getClientUsernameBySocket(_client_socket);
     std::string hostname = _client_manager.getClientHostnameBySocket(_client_socket);
     if (hostname.empty())
         hostname = "127.0.0.1";
-    _server.sendMessageToClientBySocket(_client_socket, ":" + nick + "!" + username + "@" + hostname + " NICK " + nick);
+    _server.sendMessageToClientBySocket(_client_socket, ":" + nick + "!" + username + "@" + hostname + " NICK :" + _arg);
 }
 
 void UserCommand::execute()
@@ -79,26 +80,39 @@ void UserCommand::execute()
     }
 
     size_t pos = _arg.find(' ');
+    if (pos == std::string::npos)
+        return;
     std::string username = _arg.substr(0, pos);
     _arg = _arg.substr(pos + 1);
 
     pos = _arg.find(' ');
+    if (pos == std::string::npos)
+        return;
     std::string servername = _arg.substr(0, pos);
     _arg = _arg.substr(pos + 1);
 
     pos = _arg.find(' ');
+    if (pos == std::string::npos)
+        return;
     std::string hostname = _arg.substr(0, pos);
-    _arg = _arg.substr(pos + 2); // hostname includes :
 
-    _client_manager.setClientNamesBySocket(_client_socket, username, hostname, _arg, servername);
-    printCommandMessage(2, _client_socket, "User registered");
+    if (_arg[pos + 1] != ':') // invalid realname format
+        return;
+    _arg = _arg.substr(pos + 2);
+
+    _client_manager.setClientNamesBySocket(_client_socket, username, servername, hostname, _arg);
+    printCommandMessage(2, _client_socket, "User info confirmed");
 
     // success message send
     std::string nick = _client_manager.getClientNicknameBySocket(_client_socket);
-    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + username + "@" + hostname);
-    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 002 " + nick + " :Your host is " + hostname + " running version 1.0");
-    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 003 " + nick + " :This server was created sometime");
-    _server.sendMessageToClientBySocket(_client_socket, ":irc.local 004 " + nick + " :" + hostname + " 1.0 Channel modes +ntikl");
+    if (_client_manager.isClientFirstConnectBySocket(_client_socket))
+    {
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "!" + username + "@" + hostname);
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 002 " + nick + " :Your host is " + hostname + " running version 1.0");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 003 " + nick + " :This server was created sometime");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 004 " + nick + " :" + hostname + " 1.0 Channel modes +ntikl");
+        _client_manager.setClientFirstConnectBySocket(_client_socket, false); // following USER command does not need to send welcome message
+    }
 }
 
 void PrivmsgCommand::execute()
@@ -136,7 +150,7 @@ void PrivmsgCommand::execute()
 
         if (_channel_manager.isClientInChannel(target, sender_nick) == false) // client is not in channel
         {
-            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 404 " + sender_nick + " " + target + " :Cannot send to channel");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 404 " + sender_nick + " " + target + " :You cannot send external messages to this channel whilst the +n (noextmsg) mode is set.");
             return;
         }
 
@@ -210,19 +224,19 @@ void JoinCommand::execute()
         // channel is invite-only, and joiner is not invited
         if (_channel_manager.getChannelMode(channel_name, "I") == true && _client_manager.isClientInvitedBySocket(_client_socket, channel_name) == false)
         {
-            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 473 " + client_nick + " " + channel_name + " :Cannot join channel (+i)");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 473 " + client_nick + " " + channel_name + " :Cannot join channel (invite only)");
             return;
         }
 
         if (_channel_manager.getChannelMode(channel_name, "K") == true && _channel_manager.getChannelPassword(channel_name) != password)
         {
-            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 475 " + client_nick + " " + channel_name + " :Cannot join channel (+k)");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 475 " + client_nick + " " + channel_name + " :Cannot join channel (incorrect channel key)");
             return;
         }
         
         if (_channel_manager.getChannelMode(channel_name, "L") == true && _channel_manager.getChannelMemberList(channel_name).size() >= _channel_manager.getChannelUserLimit(channel_name))
         {
-            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 471 " + client_nick + " " + channel_name + " :Cannot join channel (+l)");
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 471 " + client_nick + " " + channel_name + " :Cannot join channel (channel is full)");
             return;
         }
 
@@ -230,11 +244,11 @@ void JoinCommand::execute()
 
         // announce joining to all users
         std::string formatted_user = ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket);
-        _server.sendMessageToChannel(client_nick, channel_name, formatted_user + " JOIN " + channel_name);
+        _server.sendMessageToChannel(client_nick, channel_name, formatted_user + " JOIN :" + channel_name);
 
         // send user list to joiner
         _server.sendMessageToClientBySocket(_client_socket, ":irc.local 353 " + client_nick + " = " + channel_name + " :" + _channel_manager.getChannelMemberListString(channel_name));
-        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 366 " + client_nick + " " + channel_name + " :End of /NAMES list");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 366 " + client_nick + " " + channel_name + " :End of /NAMES list.");
     }
     else // channel does not exist
     {
@@ -246,7 +260,7 @@ void JoinCommand::execute()
 
         // send user list to joiner
         _server.sendMessageToClientBySocket(_client_socket, ":irc.local 353 " + client_nick + " = " + channel_name + " :@" + client_nick);
-        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 366 " + client_nick + " " + channel_name + " :End of /NAMES list");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 366 " + client_nick + " " + channel_name + " :End of /NAMES list.");
     }
 }
 
@@ -311,12 +325,12 @@ void ModeCommand::execute()
     if (mode[1] == 'i' || mode[1] == 'I')
     {
         _channel_manager.setChannelMode(channel_name, "I", mode[0] == '+');
-        _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :");
+        _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " :" + mode);
     }
     else if (mode[1] == 't' || mode[1] == 'T')
     {
         _channel_manager.setChannelMode(channel_name, "T", mode[0] == '+');
-        _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :");
+        _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " :" + mode);
     }
     else if (mode[1] == 'k' || mode[1] == 'K')
     {
@@ -324,7 +338,7 @@ void ModeCommand::execute()
         {
             if (value == "") // no password input
             {
-                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 696 " + client_nick + " MODE k * :You must specify a parameter for the key mode. Syntax: <key>.");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 696 " + client_nick + " " + channel_name + " k * :You must specify a parameter for the key mode. Syntax: <key>.");
                 return;
             }
             _channel_manager.setChannelMode(channel_name, "K", true);
@@ -345,7 +359,7 @@ void ModeCommand::execute()
         {
             if (value == "")
             {
-                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 697 " + client_nick + " MODE l * :You must specify a parameter for the limit mode. Syntax: <limit>.");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 696 " + client_nick + " " + channel_name + " l * :You must specify a parameter for the limit mode. Syntax: <limit>.");
                 return;
             }
             _channel_manager.setChannelMode(channel_name, "L", true);
@@ -356,16 +370,23 @@ void ModeCommand::execute()
         {
             _channel_manager.setChannelMode(channel_name, "L", false);
             _channel_manager.setChannelUserLimit(channel_name, 0);
-            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :");
+            _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " :" + mode);
         }
     }
     else if (mode[1] == 'o' || mode[1] == 'O')
     {
+
+        if (_channel_manager.isClientInChannel(channel_name, value) == false) // client is not in channel
+        {
+            _server.sendMessageToClientBySocket(_client_socket, ":irc.local 401 " + client_nick + " " + value + " :No such nick");
+            return;
+        }
+
         if (mode[0] == '+') // give oper privilege
         {
             if (value == "")
             {
-                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 698 " + client_nick + " MODE o * :You must specify a parameter for the operator mode. Syntax: <nick>.");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 696 " + client_nick + " " + channel_name + " o * :You must specify a parameter for the operator mode. Syntax: <nick>.");
                 return;
             }
 
@@ -379,7 +400,7 @@ void ModeCommand::execute()
         {
             if (value == "")
             {
-                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 698 " + client_nick + " MODE o * :You must specify a parameter for the operator mode. Syntax: <nick>.");
+                _server.sendMessageToClientBySocket(_client_socket, ":irc.local 696 " + client_nick + " " + channel_name + " o * :You must specify a parameter for the operator mode. Syntax: <nick>.");
                 return;
             }
 

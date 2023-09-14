@@ -246,7 +246,7 @@ Command* Server::createCommand(int client_socket, std::string command, std::stri
         return new CapCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "nick")
         return new NickCommand(client_socket, *this, _client_manager, _channel_manager, arg);
-    else if (command == "user")
+    else if (command == "user" || command == "userhost")
         return new UserCommand(client_socket, *this, _client_manager, _channel_manager, arg);
     else if (command == "privmsg")
         return new PrivmsgCommand(client_socket, *this, _client_manager, _channel_manager, arg);
