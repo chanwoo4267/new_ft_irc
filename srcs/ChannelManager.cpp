@@ -331,3 +331,21 @@ void ChannelManager::deleteClientFromAllChannel(std::string nickname)
             ++it;
     }
 }
+
+void ChannelManager::changeNicknameInAllChannel(std::string old_nickname, std::string new_nickname)
+{
+    std::vector<Channel>::iterator it = _channel_list.begin();
+    for (; it != _channel_list.end(); ++it)
+    {
+        if (it->isMemberExist(old_nickname))
+        {
+            it->deleteChannelMember(old_nickname);
+            it->addChannelMember(new_nickname);
+        }
+        if (it->isOperatorExist(old_nickname))
+        {
+            it->deleteChannelOperator(old_nickname);
+            it->addChannelOperator(new_nickname);
+        }
+    }
+}

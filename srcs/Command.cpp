@@ -2,46 +2,31 @@
 
 void CapCommand::execute()
 {
-    if (_arg.find("JOIN") != std::string::npos)
-        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 451 * JOIN :You have not registered");
+    // if (_arg.find("JOIN") != std::string::npos)
+    //     _server.sendMessageToClientBySocket(_client_socket, ":irc.local 451 * JOIN :You have not registered");
 }
 
 void PassCommand::execute()
 {
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
-    {
-        printCommandMessage(1, _client_socket, "Not connected to server");
         return;
-    }
 
     if (_server.getPassword() != _arg) // incorrect password
-    {
-        printCommandMessage(1, _client_socket, "Password incorrect");
         return;
-    }
 
     _client_manager.setClientAuthenticatedBySocket(_client_socket, true);
-    printCommandMessage(2, _client_socket, "Password correct");
 }
 
 void NickCommand::execute()
 {
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
-    {
-        printCommandMessage(1, _client_socket, "Not connected to server");
         return;
-    }
 
     if (_client_manager.isClientAuthenticatedBySocket(_client_socket) == false) // client is not authenticated
-    {
-        printCommandMessage(1, _client_socket, "Not authenticated");
         return;
-    }
 
     if (_arg.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789[]\\`_^{|}-") != std::string::npos) // invalid nickname
-    {
         return;
-    }
 
     if (_client_manager.isClientExistByNick(_arg)) // duplicated nickname
     {
@@ -63,6 +48,7 @@ void NickCommand::execute()
     if (hostname.empty())
         hostname = "127.0.0.1";
     _server.sendMessageToClientBySocket(_client_socket, ":" + nick + "!" + username + "@" + hostname + " NICK :" + _arg);
+    _channel_manager.changeNicknameInAllChannel(nick, _arg);
 }
 
 void UserCommand::execute()

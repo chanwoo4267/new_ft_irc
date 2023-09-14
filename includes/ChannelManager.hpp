@@ -39,6 +39,8 @@ class ChannelManager
         void                        setChannelPassword(std::string channel_name, std::string password);
         void                        setChannelUserLimit(std::string channel_name, unsigned long user_limit);
         void                        setChannelTopic(std::string channel_name, std::string topic);
+
+        void                        changeNicknameInAllChannel(std::string old_nickname, std::string new_nickname);
 };
 
 #endif
