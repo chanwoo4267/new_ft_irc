@@ -393,11 +393,7 @@ void ModeCommand::execute()
             if (_channel_manager.isClientOperatorInChannel(channel_name, value) == false) // client is not operator of channel
                 return;
 
-            if (value == client_nick) // cannot remove yourself from operator list, need to check
-            {
-                printCommandMessage(1, _client_socket, "Cannot remove yourself from operator list");
-                return;
-            }
+            // can remove myself from op
 
             _channel_manager.deleteOperFromChannel(channel_name, value);
             _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " MODE " + channel_name + " " + mode + " :" + value);
