@@ -139,6 +139,9 @@ void Server::runServer()
                 {
                     printServerMessage(0, "client " + std::to_string(curr_event->ident) + " error in run()");
                     close(curr_event->ident);
+                    // channel list에서 client 관련정보 삭제
+                    _channel_manager.deleteClientFromAllChannel(_client_manager.getClientNicknameBySocket(curr_event->ident));
+                    // client list에서 client 삭제
                     _client_manager.deleteClientBySocket(curr_event->ident);
                 }
             }
@@ -177,8 +180,9 @@ void Server::runServer()
                     {
                         if (errno != EWOULDBLOCK)
                         {
-                            printServerMessage(1, "client " + std::to_string(curr_event->ident) + " error, so disconnect");
+                            printServerMessage(1, "client " + std::to_string(curr_event->ident) + " unexpected error, so disconnect");
                             close(curr_event->ident);
+                            _channel_manager.deleteClientFromAllChannel(_client_manager.getClientNicknameBySocket(curr_event->ident));
                             _client_manager.deleteClientBySocket(curr_event->ident);
                         }
                         else
@@ -189,8 +193,8 @@ void Server::runServer()
                         printServerMessage(2, "client " + std::to_string(curr_event->ident) + " disconnected");
                         close(curr_event->ident);
                         std::string del_nick = _client_manager.getClientNicknameBySocket(curr_event->ident);
-                        _client_manager.deleteClientBySocket(curr_event->ident); // client list에서 삭제
                         _channel_manager.deleteClientFromAllChannel(del_nick); // channel list에서 해당 클라이언트 삭제
+                        _client_manager.deleteClientBySocket(curr_event->ident); // client list에서 삭제
                     }
                     else if (_client_manager.isReadBufferEndWithCRLF(curr_event->ident)) // if input is terminated with '\r\n', execute command
                     {

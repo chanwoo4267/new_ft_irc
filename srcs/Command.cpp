@@ -507,69 +507,66 @@ void TopicCommand::execute()
 
 void KickCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "KICK " + _arg);
 
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
-    {
-        printCommandMessage(1, _client_socket, "Not connected to server");
         return;
-    }
 
     if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
-    {
-        printCommandMessage(1, _client_socket, "Not authenticated");
         return;
-    }
 
     size_t pos = _arg.find(' ');
     std::string channel_name = "";
     std::string kicked = "";
+    std::string message = "";
     std::string client_nick = _client_manager.getClientNicknameBySocket(_client_socket);
 
-    if (pos == std::string::npos)
-    {
-        printCommandMessage(1, _client_socket, "Invalid number of arguments");
+    if (pos == std::string::npos) // invalid input
         return;
-    }
 
     channel_name = _arg.substr(0, pos);
     kicked = _arg.substr(pos + 1);
 
+    pos = kicked.find(' ');
+    if (pos == std::string::npos) // invalid input
+        return;
+    
+    message = kicked.substr(pos + 1); // message 입력이 없다면 : 한글자만 들어있음
+    kicked = kicked.substr(0, pos);
+
     if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
     {
-        printCommandMessage(1, _client_socket, "Channel does not exist");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 403 " + client_nick + " " + channel_name + " :No such channel");
+        return;
+    }
+
+    if (_client_manager.isClientExistByNick(kicked) == false) // kicked client does not exist
+    {
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 401 " + client_nick + " " + kicked + " :No such nick");
         return;
     }
 
     if (_channel_manager.isClientInChannel(channel_name, client_nick) == false) // client is not in channel
     {
-        printCommandMessage(1, _client_socket, "Client is not in channel");
-        return;
-    }
-
-    // kick is only for operator
-    if (_channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false) // client is not operator of channel
-    {
-        printCommandMessage(1, _client_socket, "Client is not operator of channel");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 442 " + client_nick + " " + channel_name + " :You're not on that channel!");
         return;
     }
 
     if (_channel_manager.isClientInChannel(channel_name, kicked) == false) // kicked client is not in channel
     {
-        printCommandMessage(1, _client_socket, "Kicked client is not in channel");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 441 " + client_nick + " " + kicked + " " + channel_name + " :They are not on that channel");
         return;
     }
 
-    if (kicked == client_nick) // cannot kick yourself
+    if (_channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false) // client is not operator of channel
     {
-        printCommandMessage(1, _client_socket, "Cannot kick yourself");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 482 " + client_nick + " " + channel_name + " :You must be a channel operator");
         return;
-    }
+    } 
 
+    // can kick myself
+
+    _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " KICK " + channel_name + " " + kicked + " :" + message);
     _channel_manager.deleteClientFromChannel(channel_name, kicked);
-    if (_channel_manager.isClientOperatorInChannel(channel_name, kicked))
-        _channel_manager.deleteOperFromChannel(channel_name, kicked);
-    printCommandMessage(2, _client_socket, "Client " + kicked + " kicked from channel " + channel_name);
 }
 
 /**

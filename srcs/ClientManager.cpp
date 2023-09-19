@@ -35,6 +35,8 @@ void ClientManager::deleteClientBySocket(int client_socket)
  * @brief client_list에서 client를 제거
  * 
  * @param nickname 제거할 client의 nickname
+ * 
+ * @warning channel의 client_list는 따로 제거해야 함
 */
 void ClientManager::deleteClientByNick(std::string nickname)
 {

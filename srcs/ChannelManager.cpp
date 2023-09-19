@@ -67,15 +67,21 @@ void ChannelManager::deleteChannel(std::string channel_name)
 /**
  * @brief 주어진 채널에서 주어진 클라이언트 삭제
  * 
- * @param channel_name 삭제할 채널의 이름
- * @param nickname 삭제할 클라이언트의 닉네임
- * 
- * @warning 채널이 존재하는지 확인 후 사용해야한다
+ * @note 클라이언트를 특정 채널의 멤버목록, 운영자 목록에서 삭제하고 해당 채널 멤버목록이 비어있으면 채널 삭제
 */
 void ChannelManager::deleteClientFromChannel(std::string channel_name, std::string nickname)
 {
-    Channel& channel = getChannel(channel_name);
-    channel.deleteChannelMember(nickname);
+    if (isChannelExist(channel_name))
+    {
+        Channel& channel = getChannel(channel_name);
+        channel.deleteChannelMember(nickname);
+        channel.deleteChannelOperator(nickname);
+        if (channel.getChannelMemberList().size() == 0)
+        {
+            printServerMessage(2, "Channel " + channel.getChannelName() + " has been deleted, because it is empty");
+            deleteChannel(channel_name);
+        }
+    }
 }
 
 /**
