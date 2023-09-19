@@ -463,27 +463,19 @@ void InviteCommand::execute()
 
 void TopicCommand::execute()
 {
-    printCommandMessage(2, _client_socket, "TOPIC " + _arg);
-
     if (_client_manager.isClientExistBySocket(_client_socket) == false) // client is not connected to server
-    {
-        printCommandMessage(1, _client_socket, "Not connected to server");
         return;
-    }
 
     if (_client_manager.isClientReadyBySocket(_client_socket) == false) // client is not authenticated
-    {
-        printCommandMessage(1, _client_socket, "Not authenticated");
         return;
-    }
 
     size_t pos = _arg.find(' ');
     std::string channel_name = "";
     std::string topic = "";
     std::string client_nick = _client_manager.getClientNicknameBySocket(_client_socket);
 
-    if (pos == std::string::npos)
-        channel_name = _arg;
+    if (pos == std::string::npos) //invalid input
+        return;
     else
     {
         channel_name = _arg.substr(0, pos);
@@ -492,33 +484,25 @@ void TopicCommand::execute()
 
     if (_channel_manager.isChannelExist(channel_name) == false) // channel does not exist
     {
-        printCommandMessage(1, _client_socket, "Channel does not exist");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 403 " + client_nick + " " + channel_name + " :No such channel");
         return;
     }
 
     if (_channel_manager.isClientInChannel(channel_name, client_nick) == false) // client is not in channel
     {
-        printCommandMessage(1, _client_socket, "Client is not in channel");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 442 " + client_nick + " " + channel_name + " :You're not on that channel!");
         return;
     }
 
-    if (topic == "") // get topic
+    // channel is Topic_limit, so oper can only change
+    if (_channel_manager.getChannelMode(channel_name, "T") && _channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false)
     {
-        _server.sendMessageToClientByNick(client_nick, _channel_manager.getChannelTopic(channel_name));
-        printCommandMessage(2, _client_socket, "Topic printed");
+        _server.sendMessageToClientBySocket(_client_socket, ":irc.local 482 " + client_nick + " " + channel_name + " :You do not have access to change the topic on this channel");
+        return;
     }
-    else // set topic
-    {
-        // channel is Topic_limit, so oper can only change
-        if (_channel_manager.getChannelMode(channel_name, "T") && _channel_manager.isClientOperatorInChannel(channel_name, client_nick) == false)
-        {
-            printCommandMessage(1, _client_socket, "Client is not operator of channel");
-            return;
-        }
 
-        _channel_manager.setChannelTopic(channel_name, topic);
-        printCommandMessage(2, _client_socket, "Topic set to " + topic);
-    }
+    _channel_manager.setChannelTopic(channel_name, topic); // topic 관련 get, set 메서드 전부 필요없으니 삭제해도 됨
+    _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " TOPIC " + channel_name + " :" + topic);
 }
 
 void KickCommand::execute()
