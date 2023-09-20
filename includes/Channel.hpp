@@ -18,7 +18,6 @@ class Channel
         std::string                 _channel_name;
         std::vector<std::string>    _channel_member_list;
         std::vector<std::string>    _channel_operator_list;
-        std::string                 _channel_topic;
 
         std::string                 _channel_password;
         unsigned long               _channel_user_limit;
@@ -42,7 +41,6 @@ class Channel
             std::vector<std::string>    getChannelMemberList() const;
             std::string                 getChannelMemberListString() const;
             std::string                 getChannelName() const;
-            std::string                 getChannelTopic() const;
             std::string                 getChannelPassword() const;
             unsigned long               getChannelUserLimit() const;
             bool                        getChannelModeI() const;
@@ -51,8 +49,6 @@ class Channel
             bool                        getChannelModeK() const;
     
             /* set methods */
-            void                        setChannelName(std::string channel_name);
-            void                        setChannelTopic(std::string channel_topic);
             void                        setChannelPassword(std::string channel_password);
             void                        setChannelUserLimit(unsigned long channel_user_limit);
             void                        setChannelModeI(bool channel_mode_i);

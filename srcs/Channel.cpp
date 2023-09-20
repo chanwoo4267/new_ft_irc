@@ -8,7 +8,6 @@
 Channel::Channel(std::string channel_name)
 {
     _channel_name = channel_name;
-    _channel_topic = "";
     _channel_password = "";
     _channel_user_limit = 0;
     _channel_mode_i = false;
@@ -109,11 +108,6 @@ std::string Channel::getChannelName() const
     return (_channel_name);
 }
 
-std::string Channel::getChannelTopic() const
-{
-    return (_channel_topic);
-}
-
 std::string Channel::getChannelPassword() const
 {
     return (_channel_password);
@@ -153,7 +147,8 @@ std::vector<std::string> Channel::getChannelMemberList() const
 /**
  * @brief 채널의 멤버목록을 문자열로 반환
  * 
- * @note 운영자일 경우 앞에 @를 추가, 마지막 멤버에서 공백을 추가하지 않는다
+ * @note 운영자일 경우 앞에 \@를 추가
+ * @note 마지막 멤버에서 공백을 추가하지 않는다
 */
 std::string Channel::getChannelMemberListString() const
 {
@@ -168,16 +163,6 @@ std::string Channel::getChannelMemberListString() const
             member_list_string += " ";
     }
     return (member_list_string);
-}
-
-void Channel::setChannelName(std::string channel_name)
-{
-    _channel_name = channel_name;
-}
-
-void Channel::setChannelTopic(std::string channel_topic)
-{
-    _channel_topic = channel_topic;
 }
 
 void Channel::setChannelPassword(std::string channel_password)

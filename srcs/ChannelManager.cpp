@@ -183,6 +183,12 @@ std::vector<std::string> ChannelManager::getChannelMemberList(std::string channe
     return channel.getChannelMemberList();
 }
 
+/**
+ * @brief 주어진 채널의 멤버 목록을 문자열로 가져오기
+ * 
+ * @note 운영자일 경우 앞에 \@를 추가
+ * @note 마지막 멤버에서 공백을 추가하지 않는다
+*/
 std::string ChannelManager::getChannelMemberListString(std::string channel_name)
 {
     Channel& channel = getChannel(channel_name);
@@ -296,18 +302,6 @@ void ChannelManager::setChannelUserLimit(std::string channel_name, unsigned long
     channel.setChannelUserLimit(user_limit);
 }
 
-std::string ChannelManager::getChannelTopic(std::string channel_name)
-{
-    Channel& channel = getChannel(channel_name);
-    return channel.getChannelTopic();
-}
-
-void ChannelManager::setChannelTopic(std::string channel_name, std::string topic)
-{
-    Channel& channel = getChannel(channel_name);
-    channel.setChannelTopic(topic);
-}
-
 /**
  * @brief 주어진 클라이언트를 모든 채널에서 삭제
  * 
@@ -338,6 +332,14 @@ void ChannelManager::deleteClientFromAllChannel(std::string nickname)
     }
 }
 
+/**
+ * @brief 모든 채널에서 주어진 닉네임을 새 닉네임으로 갱신
+ * 
+ * @param old_nickname 갱신할 닉네임
+ * @param new_nickname 새 닉네임
+ * 
+ * @note 채널의 멤버목록, 오퍼레이터목록에서 갱신한다
+*/
 void ChannelManager::changeNicknameInAllChannel(std::string old_nickname, std::string new_nickname)
 {
     std::vector<Channel>::iterator it = _channel_list.begin();

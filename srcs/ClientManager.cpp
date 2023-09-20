@@ -32,26 +32,6 @@ void ClientManager::deleteClientBySocket(int client_socket)
 }
 
 /**
- * @brief client_list에서 client를 제거
- * 
- * @param nickname 제거할 client의 nickname
- * 
- * @warning channel의 client_list는 따로 제거해야 함
-*/
-void ClientManager::deleteClientByNick(std::string nickname)
-{
-    std::vector<Client>::iterator it = _client_list.begin();
-    for (; it != _client_list.end(); ++it)
-    {
-        if (it->getNickname() == nickname)
-        {
-            _client_list.erase(it);
-            break;
-        }
-    }
-}
-
-/**
  * @brief client_list에 client가 존재하는지 확인
  * 
  * @param client_socket 확인할 client의 socket
@@ -145,32 +125,6 @@ void ClientManager::appendWriteBufferBySocket(int client_socket, std::string str
 {
     Client& curr_client = getClientBySocket(client_socket);
     curr_client.appendWriteBuffer(str);
-}
-
-/**
- * @brief 특정 client의 read_buffer를 비움
- * 
- * @param client_socket read_buffer를 비울 client의 socket
- * 
- * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
-*/
-void ClientManager::clearReadBufferBySocket(int client_socket)
-{
-    Client& curr_client = getClientBySocket(client_socket);
-    curr_client.clearReadBuffer();
-}
-
-/**
- * @brief 특정 client의 write_buffer를 비움
- * 
- * @param client_socket write_buffer를 비울 client의 socket
- * 
- * @warning client_list에 socket이 존재하는지 확인 후 사용할 것
-*/
-void ClientManager::clearWriteBufferBySocket(int client_socket)
-{
-    Client& curr_client = getClientBySocket(client_socket);
-    curr_client.clearWriteBuffer();
 }
 
 /**

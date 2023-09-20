@@ -22,8 +22,6 @@ class ClientManager
 
         void                    addClient(int client_socket);
         void                    deleteClientBySocket(int client_socket);
-        void                    deleteClientByNick(std::string nickname);
-        
 
         /* client set methods */
 
@@ -43,8 +41,6 @@ class ClientManager
 
         void                    appendReadBufferBySocket(int client_socket, std::string str);
         void                    appendWriteBufferBySocket(int client_socket, std::string str);
-        void                    clearReadBufferBySocket(int client_socket);
-        void                    clearWriteBufferBySocket(int client_socket);
         void                    setReadBufferBySocket(int client_socket, std::string str);
         void                    setWriteBufferBySocket(int client_socket, std::string str);
         std::string             getReadBufferBySocket(int client_socket);

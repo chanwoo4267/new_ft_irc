@@ -497,7 +497,6 @@ void TopicCommand::execute()
         return;
     }
 
-    _channel_manager.setChannelTopic(channel_name, topic); // topic 관련 get, set 메서드 전부 필요없으니 삭제해도 됨
     _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " TOPIC " + channel_name + " :" + topic);
 }
 

@@ -53,12 +53,9 @@ class Client
         /* buffer */
         void            appendReadBuffer(std::string str);
         void            appendWriteBuffer(std::string str);
-        void            clearReadBuffer();
-        void            clearWriteBuffer();
 
         /* invite */
         void            addInvite(std::string channel);
-        void            removeInvite(std::string channel);
         bool            isInvited(std::string channel);
 };
 
