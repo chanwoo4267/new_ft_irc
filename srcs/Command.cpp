@@ -497,7 +497,7 @@ void TopicCommand::execute()
         return;
     }
 
-    _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " TOPIC " + channel_name + " :" + topic);
+    _server.sendMessageToChannel(client_nick, channel_name, ":" + client_nick + "!" + _client_manager.getClientUsernameBySocket(_client_socket) + "@" + _client_manager.getClientHostnameBySocket(_client_socket) + " TOPIC " + channel_name + " " + topic);
 }
 
 void KickCommand::execute()
