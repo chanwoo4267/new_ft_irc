@@ -104,52 +104,52 @@ pip install irssi
 
 Implemented features at client:
 
-    * join channel
-    ```
-    /join #channel_name
-    ```
+* join channel
+```
+/join #channel_name
+```
 
-    * send message
-    ```
-    /privmsg #channel_name message
-    /privmsg user_nick message
-    ```
+* send message
+```
+/privmsg #channel_name message
+/privmsg user_nick message
+```
 
-    * change channel mode
-    ```
-    /mode #channel_name [+/-][i/t/k/l/o] [arguments]
-    ```
+* change channel mode
+```
+/mode #channel_name [+/-][i/t/k/l/o] [arguments]
+```
 
-    * invite user to channel
-    ```
-    /invite user_nick #channel_name
-    ```
+ * invite user to channel
+```
+/invite user_nick #channel_name
+```
 
-    * show and set channel topic
-    ```
-    /topic
-    /topic #channel_name topic_content
-    ```
+* show and set channel topic
+```
+/topic
+/topic #channel_name topic_content
+```
 
-    * kick user from channel
-    ```
-    /kick user_nick #channel_name
-    ```
+* kick user from channel
+```
+/kick user_nick #channel_name
+```
 
-    * change nickname
-    ```
-    /nick nickname
-    ```
+* change nickname
+```
+/nick nickname
+```
 
-    * change user info
-    ```
-    /user username servername hostname :realname
-    ```
+* change user info
+```
+/user username servername hostname :realname
+```
 
-    * terminate
-    ```
-    /exit
-    ```
+* terminate
+```
+/exit
+```
 
 _For more examples, please refer to the [Irssi Document](https://irssi.org/)_
 
